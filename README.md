@@ -2,6 +2,13 @@
 
 可运行的全栈 Web 规范参考实现。不是完整业务系统：数据持久化、身份认证和部署基础设施明确不在本示例范围内。
 
+## 开发规范与可复用 Skill
+
+- [AGENTS.md](AGENTS.md)：当前仓库必须遵守的边界、实际目录与验证命令。
+- [build-json-render-web](.agents/skills/build-json-render-web/SKILL.md)：可复用的工程 Skill，附声明式映射正反例、行为验收和 AGENTS 模板。
+
+复用时复制整个 `build-json-render-web` 文件夹（包含 references / assets）到支持 Agent Skills 的工具所识别的技能目录；本仓库放在 `.agents/skills/`。在支持显式调用的工具中可使用 `$build-json-render-web`，或要求代理读取其 SKILL.md。不同工具的发现/安装规则以该工具文档为准；这里没有替你安装全局技能。
+
 ## 在线预览
 
 - 主站：https://web-standards-next-demo.shawntyn.chatgpt.site
