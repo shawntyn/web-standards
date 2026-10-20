@@ -1,0 +1,107 @@
+[
+  {
+    "port": 3000,
+    "path": "/",
+    "status": 200,
+    "expected": 200,
+    "contains": "好的规范",
+    "ok": true
+  },
+  {
+    "port": 3000,
+    "path": "/projects/atlas",
+    "status": 200,
+    "expected": 200,
+    "contains": "Atlas",
+    "ok": true
+  },
+  {
+    "port": 3000,
+    "path": "/projects/missing",
+    "status": 404,
+    "expected": 404,
+    "contains": "404",
+    "ok": true
+  },
+  {
+    "port": 3000,
+    "path": "/standards",
+    "status": 200,
+    "expected": 200,
+    "contains": "架构",
+    "ok": true
+  },
+  {
+    "port": 3001,
+    "path": "/",
+    "status": 200,
+    "expected": 200,
+    "contains": "组件",
+    "ok": true
+  },
+  {
+    "port": 3001,
+    "path": "/components/slot",
+    "status": 200,
+    "expected": 200,
+    "contains": "capacity-input",
+    "ok": true
+  },
+  {
+    "port": 3001,
+    "path": "/components/missing",
+    "status": 404,
+    "expected": 404,
+    "contains": "404",
+    "ok": true
+  },
+  {
+    "path": "/api/projects",
+    "status": 200,
+    "data": {
+      "data": [
+        {
+          "slug": "atlas",
+          "name": "Atlas 工作空间",
+          "category": "产品应用",
+          "description": "把业务数据与界面协议分开。一个真实动态路由，展示项目详情、数据转换与特殊组件插槽。",
+          "status": "运行中",
+          "progress": 84,
+          "members": 24,
+          "tasks": 1280,
+          "features": [
+            "请求时服务端渲染",
+            "参数与数据双重校验",
+            "显式 map 转换 Spec"
+          ]
+        },
+        {
+          "slug": "orbit",
+          "name": "Orbit 内容中枢",
+          "category": "内容平台",
+          "description": "相同组件、不同数据。通过同一个动态路由模板渲染另一份静态 JSON，而不是复制一份页面。",
+          "status": "构建中",
+          "progress": 62,
+          "members": 12,
+          "tasks": 640,
+          "features": ["共享组件目录", "命名插槽扩展", "缺失资源返回 404"]
+        },
+        {
+          "slug": "field",
+          "name": "Field 数据看板",
+          "category": "分析工具",
+          "description": "结构化数据驱动展示，通过稳定节点 ID 和受约束的组件注册表维护一致性。",
+          "status": "运行中",
+          "progress": 96,
+          "members": 36,
+          "tasks": 2160,
+          "features": ["稳定的节点引用", "Zod 运行时校验", "独立部署边界"]
+        }
+      ],
+      "meta": {
+        "source": "static-json-mock",
+        "count": 3
+      }
+    }
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "name": "@repo/render",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./catalog": "./src/catalog.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/ui": "workspace:*",
+    "@json-render/core": "0.21.1",
+    "@json-render/react": "0.21.1",
+    "zod": "4.6.7"
+  },
+  "peerDependencies": {
+    "react": "^19.3.1"
+  }
+}

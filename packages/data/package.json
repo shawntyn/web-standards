@@ -1,0 +1,17 @@
+{
+  "name": "@repo/data",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/render": "workspace:*",
+    "@json-render/core": "0.21.1",
+    "zod": "4.6.7"
+  }
+}

@@ -1,2 +1,109 @@
-# web-standards
-Full-stack web reference: pnpm monorepo, Next.js SSR, Tailwind CSS, self-built UI and json-render.
+# Web Standard
+
+可运行的全栈 Web 规范参考实现。不是完整业务系统：数据持久化、身份认证和部署基础设施明确不在本示例范围内。
+
+## 在线预览
+
+- 主站：https://web-standards-next-demo.shawntyn.chatgpt.site
+- 组件文档：https://web-standards-ui-docs.shawntyn.chatgpt.site
+
+两个预览站均为 owner-private，仅项目所有者登录 ChatGPT 后可访问。公开的是本仓库源码，不代表预览站已开放匿名访问。
+
+## 技术与版本
+
+2026-10-20 查询 npm registry 的稳定版本：Next.js 16.4.2、React 19.3.1、Tailwind CSS 4.3.3、json-render 0.21.1、pnpm 12.14.0。实际依赖通过 `pnpm-lock.yaml` 固定，禁止在部署时隐式升级。
+
+TypeScript 固定为 6.0.3：当前 typescript-eslint 8.71.2 明确不支持 TS 7 API，因此采用兼容编译器，而不是跳过 lint 或类型检查。见 [TypeScript 官方说明](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0)。
+
+要求 Node.js 24+。推荐用 Corepack 或 pnpm 官方安装方式准备项目指定的 pnpm 版本。
+
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+# 主站 http://localhost:3000
+# 组件文档 http://localhost:3001
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm --filter @repo/web start
+pnpm --filter @repo/docs start
+```
+
+## 为什么是 apps/web + apps/docs，而不是 app/(web) + app/(docs)
+
+两站有独立的导航、部署、构建产物和生命周期，采用两个 Next.js workspace。Route Group `(group)` 只是在一个应用中组织布局，不创建独立应用或部署边界。若未来两站必须共用单一部署和路由，再使用 route group；它不是 monorepo 的替代品。
+
+```text
+apps/
+  web/src/app/
+    page.tsx
+    standards/page.tsx
+    projects/[slug]/page.tsx
+    api/projects/route.ts
+  docs/src/app/
+    page.tsx
+    components/[slug]/page.tsx
+packages/
+  ui/src/           自建视觉组件与共享 CSS，无外部 UI 库
+  render/src/       catalog、typed registry、官方 Renderer、特殊组件
+  data/src/         原始 JSON、Zod schema、显式 map 到 Spec
+ tests/             数据契约、引用完整性、真实 SSR 检查
+```
+
+依赖方向：apps → data / render；data → render/catalog（纯 schema）；render → ui；ui 不依赖应用、业务数据或 json-render。所有 workspace 使用 `workspace:*` 和显式 exports，不通过相对路径跨包导入。测试可以直接定位被测源码。
+
+## 完整渲染路径
+
+1. Next.js 异步 Server Page 用 `await connection()` 明确请求时动态渲染。
+2. 动态路由 `params` 是 Promise，必须 `await params`。
+3. 读取静态 `projects.json`，使用 Zod 校验业务结构；未知 slug 调用 `notFound()`。
+4. `projectCardsToElements()` 使用显式 `.map` / `.flatMap` 和 `Object.fromEntries` 将领域对象转换为节点字典。这不是把业务 JSON 直接当 UI Spec。
+5. `catalog.validate(spec)` 校验组件和 props，额外检查所有节点引用存在。
+6. 将可序列化 Spec 传给 `SpecView`。它直接使用官方 `@json-render/react` 的 `JSONUIProvider`、`Renderer` 和 `defineRegistry`。
+7. Next.js 对 Client Component 首次请求仍预渲染 HTML，然后 hydration；`'use client'` 不等于 CSR。本项目没有 `ssr:false`、客户端 fetch 或用空壳替代 SSR。
+
+页面的组件树、内容、导航与文档示例均通过 Spec 进入 Renderer。Next.js 的根文档 `<html>/<body>` 是框架必要边界，不是用 JSON 描述文档本身。
+
+## Catalog / Registry / Spec
+
+- `catalog.ts`：Zod props 契约，以及允许的 default/header/footer slot。
+- `index.tsx`：受信任组件实现的注册表；没有动态 import 任意路径或执行 JSON 内代码。
+- `Spec`：`{ root, elements }`，节点 `type` 指向组件名，children/slots 存节点 ID。
+- UI 包：语义化 React 组件，只接普通 props 和 ReactNode；不了解 json-render。
+
+## 特殊组件 slot
+
+`Card` 在 Catalog 声明 `slots: ['default','header','footer']`。Registry 通过 `slots?.header` 和 `slots?.footer` 显式传给基础 Card。页面 Spec 的 footer 指向 `CapacityPlanner` 节点，它是代码中预注册的可交互组件，JSON 只提供初始数值。
+
+此例展示允许业务扩展而不污染通用 UI 的方法。不要把函数、JSX、组件模块路径或原始 HTML 塞进 JSON；未来引入新的特殊组件时，同时更新 catalog、registry 和测试。
+
+## Tailwind CSS
+
+使用 v4 CSS-first 配置：`@import "tailwindcss"`、`@theme`、`@source`；PostCSS 使用 `@tailwindcss/postcss`。共享设计 tokens 与基础 CSS 在 UI 包。Tailwind 静态扫描显式涵盖 workspace 源码；不拼接无法被扫描器识别的 utility 类名。
+
+## 服务端 API 与 mock
+
+`GET /api/projects` 返回领域 JSON，与展示 Spec 分离。页面直接使用服务器的数据模块，不在服务器内部绕行自己的 HTTP API。替换数据库时，保留 domain schema 与 Spec mapper，替换仓储读取层即可。
+
+## 测试与边界
+
+`pnpm test` 检查全部示例 Spec、稳定 ID、命名 slots、无效引用拒绝和真实 React SSR 文本。生产构建后还应检查有效动态路由的 HTML、无效 slug 的 HTTP 404、API 数据与浏览器 hydration。
+
+性能/可访问性：原生语义元素、可见焦点、range label、aria-live、响应式布局、减少动画偏好；无远程字体依赖。
+
+## 一手参考
+
+- https://nextjs.org/docs/app/getting-started/project-structure
+- https://nextjs.org/docs/app/api-reference/functions/connection
+- https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes
+- https://nextjs.org/docs/app/getting-started/server-and-client-components
+- https://tailwindcss.com/docs/installation/framework-guides/nextjs
+- https://tailwindcss.com/docs/detecting-classes-in-source-files
+- https://pnpm.io/workspaces
+- https://github.com/vercel-labs/json-render
+- https://json-render.dev/docs
+
+本项目演示明确的架构取舍，不宣称所有团队必须使用完全相同的目录结构。
+
+UI 包是 Next.js 专用基础组件库：导航组件 LinkButton 与 Frame 使用 next/link；LinkButton 是链接而非提交按钮。需要表单行为时应另定义原生 button 组件。

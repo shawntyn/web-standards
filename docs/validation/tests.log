@@ -1,0 +1,14 @@
+$ node --import tsx --test tests/*.test.ts
+✔ all examples are valid catalog specs with resolved references (58.508246ms)
+✔ domain .map creates stable card IDs and named slots (2.516654ms)
+✔ unknown routes return no domain resource (0.258804ms)
+✔ real json-render SSR emits meaningful HTML and special slot content (58.607858ms)
+✔ invalid node references and unknown components are rejected (3.217342ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2323.989112

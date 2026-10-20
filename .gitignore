@@ -1,0 +1,15 @@
+node_modules
+.next
+.env*
+!.env.example
+*.tsbuildinfo
+
+# Local tools, credentials and deployment identities
+.openai/
+.vercel/
+.wrangler/
+.open-next/
+coverage/
+.DS_Store
+*.pem
+*.key
