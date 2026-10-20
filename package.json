@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "test": "node --import tsx --test tests/*.test.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:http": "node scripts/verify-production.mjs"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.3",

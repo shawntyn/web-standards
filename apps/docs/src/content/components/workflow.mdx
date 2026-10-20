@@ -18,7 +18,7 @@
 ## 验收路径
 
 - 新建：打开表单，填写字段，提交后检查新增行。
-- 编辑：从某一行进入编辑，修改名称或状态，提交后检查同一行更新。
+- 编辑：从某一行进入编辑，修改名称、状态或正文内容 JSON，提交后检查同一行更新。
 - 校验：空必填值不能成功提交；服务端不能只信任客户端校验。
 - 失败：触发模拟 503，确认错误可见、内容保留、能够再次提交。
 - 取消：不提交更改，返回列表。
@@ -29,7 +29,7 @@
 
 组件实现放 packages/ui，协议放 packages/render，业务 schema 放 packages/domain，演示主站和文档分别属于 apps/web 与 apps/docs。路由组只适合一个应用内部的组织，不用于替代两个独立应用。
 
-参见 [表格](/components/table)、[表单](/components/form) 和 [命名插槽](/components/slot)。
+参见 [内容驱动渲染](/components/content)、[表格](/components/table)、[表单](/components/form) 和 [命名插槽](/components/slot)。
 
 ## 官方规范依据
 

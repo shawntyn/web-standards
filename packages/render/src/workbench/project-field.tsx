@@ -44,29 +44,35 @@ export function ProjectField({
     ) => actions.change(name as keyof ProjectDraft, event.target.value),
   };
   return (
-    <FormField
-      htmlFor={id}
-      label={label}
-      error={error}
-      description={description}
-      required={required}
-    >
-      {type === "textarea" ? (
-        <Textarea {...props} rows={name === "features" ? 3 : 4} />
-      ) : type === "select" ? (
-        <Select {...props}>
-          {["运行中", "构建中", "已归档"].map((status) => (
-            <option key={status}>{status}</option>
-          ))}
-        </Select>
-      ) : (
-        <Input
-          {...props}
-          type={type}
-          min={type === "number" ? (name === "members" ? 1 : 0) : undefined}
-          max={name === "progress" ? 100 : undefined}
-        />
-      )}
-    </FormField>
+    <div className={name === "content" ? "md:col-span-2" : undefined}>
+      <FormField
+        htmlFor={id}
+        label={label}
+        error={error}
+        description={description}
+        required={required}
+      >
+        {type === "textarea" ? (
+          <Textarea
+            className={name === "content" ? "font-mono text-sm" : undefined}
+            {...props}
+            rows={name === "content" ? 14 : name === "features" ? 3 : 4}
+          />
+        ) : type === "select" ? (
+          <Select {...props}>
+            {["运行中", "构建中", "已归档"].map((status) => (
+              <option key={status}>{status}</option>
+            ))}
+          </Select>
+        ) : (
+          <Input
+            {...props}
+            type={type}
+            min={type === "number" ? (name === "members" ? 1 : 0) : undefined}
+            max={name === "progress" ? 100 : undefined}
+          />
+        )}
+      </FormField>
+    </div>
   );
 }

@@ -1,0 +1,62 @@
+{
+  "slug": "atlas",
+  "name": "Atlas 工作空间",
+  "category": "产品应用",
+  "description": "一个小型团队工作空间的产品说明：交付范围、上手步骤与容量试算。",
+  "status": "运行中",
+  "progress": 84,
+  "members": 24,
+  "tasks": 1280,
+  "features": ["任务协作", "评审记录", "开放格式导出"],
+  "content": [
+    {
+      "id": "why",
+      "type": "paragraph",
+      "text": "Atlas 是一个面向小型产品团队的工作空间。这个版本只解决一件事：让计划、任务和决策留在同一个地方，不再依靠聊天记录拼凑上下文。"
+    },
+    {
+      "id": "scope",
+      "type": "heading",
+      "level": 2,
+      "text": "本次交付范围"
+    },
+    {
+      "id": "features",
+      "type": "list",
+      "items": [
+        "按项目维护任务，明确负责人和截止日期。",
+        "把评审结论附在任务旁，保留决策原因。",
+        "先提供可导出的开放格式，再考虑更多集成。"
+      ]
+    },
+    {
+      "id": "getting-started",
+      "type": "heading",
+      "level": 2,
+      "text": "从一个小团队开始"
+    },
+    {
+      "id": "start-steps",
+      "type": "list",
+      "ordered": true,
+      "items": [
+        "建立一个项目，只添加本周要交付的工作。",
+        "邀请实际参与的成员，而不是整个组织。",
+        "在周末复盘中归档完成项，记录下一步。"
+      ]
+    },
+    {
+      "id": "team-capacity",
+      "type": "capacity-plan",
+      "title": "试算团队容量",
+      "description": "根据实际参与人数估算每周可安排的工作量。这个交互工具只在需要它的产品说明中出现。",
+      "initial": 24
+    },
+    {
+      "id": "limits",
+      "type": "callout",
+      "title": "目前的边界",
+      "text": "这是演示项目。容量只是帮助讨论的估算值，不替代团队承诺；编辑工作台使用标签页级 mock 数据。"
+    }
+  ]
+}

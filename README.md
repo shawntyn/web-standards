@@ -26,6 +26,7 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm test:http  # 启动两个生产服务，检查 SSR / 404 / mock API，然后退出
 pnpm --filter @repo/web start
 pnpm --filter @repo/docs start
 ```
@@ -49,23 +50,39 @@ packages/
   ui/src/index.ts    仅 barrel exports
   ui/src/styles.css  Tailwind theme tokens + 全局 base
   render/src/       catalog、typed registry、官方 Renderer、特殊组件
-  data/src/         原始 JSON、Zod schema、显式 map 到 Spec
+  domain/src/       内容 / 项目 schema、草稿转换、mock HTTP 校验
+  data/src/projects/atlas.json  产品说明
+  data/src/projects/orbit.json  编辑手记
+  data/src/projects/field.json  分析报告
+  data/src/pages/   页面组合，index.ts 仅导出
  tests/             数据契约、引用完整性、真实 SSR 检查
 ```
 
-依赖方向：apps → data / render；data → render/catalog（纯 schema）；render → ui；ui 不依赖应用、业务数据或 json-render。所有 workspace 使用 `workspace:*` 和显式 exports，不通过相对路径跨包导入。测试可以直接定位被测源码。
+依赖方向：apps → data / render；data → render/catalog 与 render/projects（纯转换器）；render → domain / ui；ui 不依赖应用、业务数据或 json-render。所有 workspace 使用 `workspace:*` 和显式 exports，不通过相对路径跨包导入。测试可以直接定位被测源码。
 
 ## 完整渲染路径
 
 1. Next.js 异步 Server Page 用 `await connection()` 明确请求时动态渲染。
 2. 动态路由 `params` 是 Promise，必须 `await params`。
-3. 读取静态 `projects.json`，使用 Zod 校验业务结构；未知 slug 调用 `notFound()`。
-4. `projectCardsToElements()` 使用显式 `.map` / `.flatMap` 和 `Object.fromEntries` 将领域对象转换为节点字典。这不是把业务 JSON 直接当 UI Spec。
+3. 读取 `projects/` 下逐项目独立的 JSON 文件，使用 Zod 校验业务结构；未知 slug 调用 `notFound()`。
+4. `projectContentSpec()` 用 `content.map(mapContentBlock)` 将有序领域内容转换为节点字典与 children 顺序。首页摘要另由 `projectCardsToElements()` 转换。这不是把业务 JSON 直接当 UI Spec。
 5. `catalog.validate(spec)` 校验组件和 props，额外检查所有节点引用存在。
 6. 将可序列化 Spec 传给 `SpecView`。它直接使用官方 `@json-render/react` 的 `JSONUIProvider`、`Renderer` 和 `defineRegistry`。
-7. Next.js 对 Client Component 首次请求仍预渲染 HTML，然后 hydration；`'use client'` 不等于 CSR。本项目没有 `ssr:false`、客户端 fetch 或用空壳替代 SSR。
+7. Next.js 对 Client Component 首次请求仍预渲染 HTML，然后 hydration；`'use client'` 不等于 CSR。本项目不使用 `ssr:false` 或空壳替代 SSR，首屏读取不依赖客户端 fetch；工作台写操作通过真实 HTTP 提交。
 
-页面的组件树、内容、导航与文档示例均通过 Spec 进入 Renderer。Next.js 的根文档 `<html>/<body>` 是框架必要边界，不是用 JSON 描述文档本身。
+页面的组件树、内容、导航与文档组件预览均通过 Spec 进入 Renderer。文档正文由本地 MDX 编译。Next.js 的根文档 `<html>/<body>` 是框架必要边界，不是用 JSON 描述文档本身。
+
+## 内容驱动，而非重复的详情模板
+
+三个示例各自一个 JSON 文件，使用共享的类型安全内容协议，但有不同的内容块与顺序：Atlas 为产品说明，Orbit 为编辑手记，Field 为分析报告。正文只呈现作者提供的内容，不固定插入三张指标卡、源码 JSON 或技术说明。
+
+`packages/domain/src/content.ts` 定义 paragraph / heading / list / quote / code / table / callout / capacity-plan 判别联合。每块稳定 ID 唯一，未知类型、额外属性、表格行宽不符均拒绝。`packages/render/src/projects/project-content-spec.ts` 是唯一正文映射器；`ProjectSpecViewRender` 与 SSR 页面共用它。调整段落顺序、删块或新增已有类型的块，只改内容文件，无需修改 TypeScript 模板。
+
+正文采用约 72ch 的 `Document` 阅读容器。特殊容量工具仅在 Atlas 的 `capacity-plan` 块中，通过 `ContentSection` 的 `interactive` 命名 slot 接入，不强迫每篇文档出现相同工具。数据中仍不允许 JSX、函数、任意模块路径或 HTML 注入。
+
+工作台可编辑同一份正文 JSON，保留内容并共享客户端与服务端校验；成功后会话详情使用相同渲染器更新。它是协议编辑器，不是富文本编辑器。会话存储 key 升为 v2，旧结构不混入新数据。
+
+职责按文件拆分：data 的仓储 / mapper / page / shell / 校验分开；domain 的内容契约 / 项目契约 / 草稿 / 集合更新 / HTTP 服务分开；workbench 的状态 hook / session store / 字段定义 / 展示组件分开。只用于旧文档样例的重复定义已经删除，组件文档以 apps/docs 的本地 MDX 为唯一来源。
 
 ## Catalog / Registry / Spec
 
@@ -76,7 +93,7 @@ packages/
 
 ## 特殊组件 slot
 
-`Card` 在 Catalog 声明 `slots: ['default','header','footer']`。Registry 通过 `slots?.header` 和 `slots?.footer` 显式传给基础 Card。页面 Spec 的 footer 指向 `CapacityPlanner` 节点，它是代码中预注册的可交互组件，JSON 只提供初始数值。
+`Card` 在 Catalog 声明 `slots: ['default','header','footer']`。Registry 通过 `slots?.header` 和 `slots?.footer` 显式传给基础 Card。组件文档的 Card 示例 footer 指向 `CapacityPlanner` 节点，它是代码中预注册的可交互组件，JSON 只提供初始数值。
 
 此例展示允许业务扩展而不污染通用 UI 的方法。不要把函数、JSX、组件模块路径或原始 HTML 塞进 JSON；未来引入新的特殊组件时，同时更新 catalog、registry 和测试。
 

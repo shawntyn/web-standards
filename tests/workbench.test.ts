@@ -158,7 +158,7 @@ test("actual editor validates, creates, edits, cancels, filters, persists and re
   await testing.waitFor(() =>
     assert.ok(result.getByText(/已更新「Test 修改名称」/)),
   );
-  assert.ok(result.getByText("Test 修改名称 · 会话详情"));
+  assert.ok(result.getByRole("region", { name: "Test 修改名称 · 会话详情" }));
   await user.click(result.getByRole("button", { name: "编辑 Test 修改名称" }));
   await user.clear(byLabel("项目名称"));
   await user.type(byLabel("项目名称"), "不应保存的名字");
@@ -173,5 +173,48 @@ test("actual editor validates, creates, edits, cancels, filters, persists and re
   );
   await testing.waitFor(() =>
     assert.ok(remount.getByRole("button", { name: "编辑 Test 修改名称" })),
+  );
+});
+
+test("content editing preserves order, validates JSON and updates the shared rendered document", async () => {
+  const user = userEvent.setup({
+    document: dom.document as unknown as Document,
+  });
+  const result = testing.render(
+    createElement(ProjectWorkbench, { initialProjects: projects }),
+  );
+  await testing.waitFor(() =>
+    assert.equal(
+      (
+        result.getByRole("button", {
+          name: "编辑 Orbit 内容中枢",
+        }) as HTMLButtonElement
+      ).disabled,
+      false,
+    ),
+  );
+  await user.click(result.getByRole("button", { name: "编辑 Orbit 内容中枢" }));
+  const content = result.getByLabelText("正文内容", { exact: false });
+  const original = JSON.parse((content as HTMLTextAreaElement).value);
+  assert.deepEqual(original, projects[1]!.content);
+  testing.fireEvent.change(content, { target: { value: "{" } });
+  await user.click(result.getByRole("button", { name: "保存项目" }));
+  assert.ok(result.getByText(/正文必须为有效 JSON/));
+  const updated = [
+    { id: "new-first", type: "paragraph", text: "编辑后新增的第一段" },
+    ...original.slice().reverse(),
+  ];
+  testing.fireEvent.change(content, {
+    target: { value: JSON.stringify(updated) },
+  });
+  await user.click(result.getByRole("button", { name: "保存项目" }));
+  await testing.waitFor(() =>
+    assert.ok(result.getByText(/已更新「Orbit 内容中枢」/)),
+  );
+  assert.ok(result.getByText("编辑后新增的第一段"));
+  const saved = JSON.parse(dom.sessionStorage.getItem(STORAGE_KEY)!);
+  assert.deepEqual(
+    saved.find((p: { slug: string }) => p.slug === "orbit").content,
+    updated,
   );
 });

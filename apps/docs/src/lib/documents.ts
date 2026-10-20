@@ -1,3 +1,4 @@
+import ContentModel from "../content/components/content.mdx";
 import Primitives from "../content/components/primitives.mdx";
 import Card from "../content/components/card.mdx";
 import Button from "../content/components/button.mdx";
@@ -9,6 +10,12 @@ import Form from "../content/components/form.mdx";
 
 // Explicit local allowlist: never resolve untrusted route text into a file path.
 export const documents = [
+  {
+    slug: "content",
+    title: "内容驱动渲染",
+    description: "独立 JSON 文档、顺序映射与简洁阅读排版",
+    Content: ContentModel,
+  },
   {
     slug: "primitives",
     title: "基础组件",
