@@ -67,7 +67,7 @@ try {
     /一个可以带走的格式/,
   );
   const field = await inspect(web, "/projects/field", 200, /首周激活漏斗/);
-  for (const html of [atlas, orbit, field]) assert.match(html, /<article/);
+  for (const html of [atlas, orbit, field]) assert.match(html, /<h1/);
   assert.match(atlas, /capacity-input/);
   assert.match(orbit, /<blockquote>/);
   assert.match(field, /<table/);
@@ -103,7 +103,12 @@ try {
       [
         "POST",
         "/api/projects",
-        { project: { ...project, content: [{ id: "bad", type: "unknown" }] } },
+        {
+          project: {
+            ...project,
+            content: { id: "bad", type: "unknown", props: {} },
+          },
+        },
         422,
       ],
       ["POST", "/api/projects", { project, simulateError: true }, 503],
@@ -127,11 +132,11 @@ try {
   assert.equal((data.data ?? data).length, 3);
   const report = { verifiedAt: new Date().toISOString(), checks };
   await writeFile(
-    resolve(root, "docs/validation/http-content.json"),
+    resolve(root, "docs/validation/http-declarative.json"),
     JSON.stringify(report, null, 2) + "\n",
   );
   console.log(
-    `${checks.length} production HTTP checks passed. SSR document differences and API content preservation verified.`,
+    `${checks.length} production HTTP checks passed. SSR declared tree differences and API content preservation verified.`,
   );
 } finally {
   for (const child of servers) child.kill("SIGTERM");

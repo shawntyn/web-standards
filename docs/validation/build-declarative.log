@@ -1,0 +1,57 @@
+$ pnpm -r --workspace-concurrency=1 build
+$ next build
+▲ Next.js 16.4.2 (Turbopack)
+✓ Running next.config.ts took 184ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 8.9s
+  Running TypeScript ...
+  Finished TypeScript in 19.2s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/4) ...
+  Generating static pages using 7 workers (1/4) 
+  Generating static pages using 7 workers (2/4) 
+  Generating static pages using 7 workers (3/4) 
+✓ Generating static pages using 7 workers (4/4) in 2.5s
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /api/projects
+├ ƒ /api/projects/[slug]
+└ ƒ /components/[slug]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+$ next build
+▲ Next.js 16.4.2 (Turbopack)
+✓ Running next.config.ts took 107ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 50s
+  Running TypeScript ...
+  Finished TypeScript in 22.3s ...
+  Collecting page data using 8 workers ...
+  Generating static pages using 8 workers (0/6) ...
+  Generating static pages using 8 workers (1/6) 
+  Generating static pages using 8 workers (2/6) 
+  Generating static pages using 8 workers (4/6) 
+✓ Generating static pages using 8 workers (6/6) in 1946ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /api/projects
+├ ƒ /api/projects/[slug]
+├ ƒ /projects
+├ ƒ /projects/[slug]
+└ ƒ /standards
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

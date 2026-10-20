@@ -12,7 +12,19 @@ export const emptyDraft: ProjectDraft = {
   tasks: "0",
   features: "",
   content: JSON.stringify(
-    [{ id: "introduction", type: "paragraph", text: "在这里填写项目正文。" }],
+    {
+      id: "page",
+      type: "Stack",
+      props: { gap: "lg" },
+      children: [
+        { id: "title", type: "h1", props: { text: "新项目" } },
+        {
+          id: "introduction",
+          type: "p",
+          props: { text: "在这里填写项目内容。" },
+        },
+      ],
+    },
     null,
     2,
   ),
@@ -33,7 +45,7 @@ const JsonContentSchema = z.string().transform((value, context): unknown => {
   } catch {
     context.addIssue({
       code: "custom",
-      message: "正文必须为有效 JSON 数组，请检查引号与逗号",
+      message: "内容必须为有效 JSON 节点对象，请检查引号与逗号",
     });
     return z.NEVER;
   }

@@ -26,6 +26,7 @@ before(async () => {
   });
   Object.assign(globalThis, {
     window: dom,
+    self: dom,
     document: dom.document,
 
     HTMLElement: dom.HTMLElement,
@@ -176,7 +177,7 @@ test("actual editor validates, creates, edits, cancels, filters, persists and re
   );
 });
 
-test("content editing preserves order, validates JSON and updates the shared rendered document", async () => {
+test("content editing preserves order, validates JSON and updates the shared rendered tree", async () => {
   const user = userEvent.setup({
     document: dom.document as unknown as Document,
   });
@@ -194,16 +195,19 @@ test("content editing preserves order, validates JSON and updates the shared ren
     ),
   );
   await user.click(result.getByRole("button", { name: "编辑 Orbit 内容中枢" }));
-  const content = result.getByLabelText("正文内容", { exact: false });
+  const content = result.getByLabelText("页面节点树", { exact: false });
   const original = JSON.parse((content as HTMLTextAreaElement).value);
   assert.deepEqual(original, projects[1]!.content);
   testing.fireEvent.change(content, { target: { value: "{" } });
   await user.click(result.getByRole("button", { name: "保存项目" }));
-  assert.ok(result.getByText(/正文必须为有效 JSON/));
-  const updated = [
-    { id: "new-first", type: "paragraph", text: "编辑后新增的第一段" },
-    ...original.slice().reverse(),
-  ];
+  assert.ok(result.getByText(/内容必须为有效 JSON/));
+  const updated = {
+    ...original,
+    children: [
+      { id: "new-first", type: "p", props: { text: "编辑后新增的第一段" } },
+      ...(original.children ?? []).slice().reverse(),
+    ],
+  };
   testing.fireEvent.change(content, {
     target: { value: JSON.stringify(updated) },
   });

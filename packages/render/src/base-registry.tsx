@@ -5,13 +5,9 @@ import * as UI from "@repo/ui";
 import { baseCatalog } from "./base-catalog";
 import { CapacityPlanner } from "./components/capacity-planner";
 export const baseComponents = {
-  Document: ({ children }) => <UI.Document>{children}</UI.Document>,
   ContentList: ({ props }) => <UI.ContentList {...props} />,
   Quote: ({ props }) => <UI.Quote {...props} />,
   ContentTable: ({ props }) => <UI.ContentTable {...props} />,
-  ContentSection: ({ props, slots }) => (
-    <UI.ContentSection {...props} interactive={slots?.interactive} />
-  ),
   Frame: ({ props, children }) => <UI.Frame {...props}>{children}</UI.Frame>,
   Stack: ({ props, children }) => <UI.Stack {...props}>{children}</UI.Stack>,
   Split: ({ children }) => <UI.Split>{children}</UI.Split>,

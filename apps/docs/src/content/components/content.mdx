@@ -1,80 +1,109 @@
 import { ComponentPreview } from "../../components/component-preview";
 
-# 内容先于页面模板
+# JSON 声明什么，就渲染什么
 
-统一的是渲染规则，而不是每份文档的内容结构。三个项目各自维护一个 JSON 文件，正文用有序内容块表达；不再为每个项目强制拼一套指标、卡片与源码区。
+统一的是协议转换与组件注册，不是固定页面模板，也不是 Markdown 排版。源 JSON 明确写出标题、正文、布局、组件参数及命名插槽；转换器不根据项目名称补标题，不根据描述补段落，不自动添加卡片、导航或交互工具。
 
-- Atlas 是产品说明：段落、范围列表、上手步骤，以及实际需要的容量试算。
-- Orbit 是编辑手记：引用开篇，接段落、标题、代码片段与开放问题。
-- Field 是分析报告：结论先行，再给数据表、假设与行动列表。
+## 两种结构，一一对应
 
-## 源文件与边界
+业务记录中的 content 是一个显式根节点树。每个节点有 id、type、props，可按组件能力声明 children 和 slots。json-render 的 Spec 则使用 root 与 elements 节点字典，children 和 slots 引用节点 ID。
 
-packages/data/src/projects/atlas.json、orbit.json、field.json 是独立内容文件。project-repository.ts 只显式导入和校验；pages/project.ts 只连接应用外壳与正文。
+转换器只完成树到字典的转换：每个源节点产生一个目标节点，保持 ID、顺序、props 与插槽关系。h1 到 h6 是 Heading 的语义别名，分别对应 level 1 到 6；p 对应 Text。这是协议名称映射，不是额外创造内容。
 
-packages/domain/src/content.ts 定义允许的内容块。packages/render/src/projects/project-content-spec.ts 用 content.map 把语义内容转换成 json-render 节点，并按数组顺序设置 children。正文不包含 Tailwind 类名、组件模块路径或 JSX。
+```json
+{
+  "id": "overview",
+  "type": "Stack",
+  "props": { "gap": "lg" },
+  "children": [
+    { "id": "title", "type": "h1", "props": { "text": "产品概览" } },
+    {
+      "id": "intro",
+      "type": "p",
+      "props": { "text": "这里是数据明确提供的介绍。" }
+    },
+    {
+      "id": "metrics",
+      "type": "Grid",
+      "props": { "columns": 2 },
+      "children": [
+        {
+          "id": "members",
+          "type": "Metric",
+          "props": { "label": "成员", "value": "24" }
+        },
+        {
+          "id": "tasks",
+          "type": "Metric",
+          "props": { "label": "任务", "value": "1280" }
+        }
+      ]
+    }
+  ]
+}
+```
 
-ProjectSpecViewRender 与 SSR 页面共用这一转换器和注册表，工作台保存后也使用相同的正文呈现。添加段落、删除块或调整顺序只修改内容 JSON，不修改动态路由。
+上面的五个子节点与根布局共六个源节点，转换后仍只有六个节点。删掉 title，就不出现 h1；只提供一个 p 根节点，就只渲染这个段落，不会被强制包进文章、卡片或标题模板。
 
-## 内容块
+## 独立文件与不同布局
 
-每个块都有稳定且文档内唯一的 id 和一个 type。
+packages/data/src/projects/ 下的 atlas.json、orbit.json、field.json 分别独立维护。它们共享受限节点协议，但在数据中声明各自不同的组件树。Grid、Stack、Card 等布局不是 mapper 的默认选择。
 
-- paragraph：text。
-- heading：text、level（2 或 3）。页面主标题来自项目名称，不允许正文再插入 h1。
-- list：items，可选 ordered。
-- quote：text，可选 attribution。
-- code：language、code，仅显示文本，不执行。
-- table：caption、columns、rows，每一行必须与列数对应。
-- callout：title、text。
-- capacity-plan：title、description、initial。映射为 ContentSection 的 interactive 命名插槽，只有 Atlas 使用这个特殊组件。
+packages/domain/src/content.ts 校验树；packages/render/src/projects/project-content-spec.ts 展平树；ProjectSpecViewRender 仅连接转换器与受信任 registry。项目 name、description 等元数据仍用于列表和 SEO，不隐式加入详情正文。Next.js 的路由布局只负责应用级页面边界，不属于项目 Spec。
 
-未知类型、重复 ID、错误表格行宽和额外属性都会在业务校验时拒绝。内容 ID 和内部 slot ID 使用不同命名空间，避免覆盖节点。
+## 插槽也由数据声明
 
-## 简洁的阅读排版
+Card 支持 header、footer 命名插槽。要展示容量工具，就在该 Card 的 slots.footer 中显式写 CapacityPlanner 节点；不写便没有工具，也不由某个抽象内容类型自动生成它。
 
-Document 提供约 72ch 阅读宽度、克制的标题和正文间距；它不规定内容数量、类型或顺序。样式使用 Tailwind utilities，组件仍逐文件维护。
+```json
+{
+  "id": "capacity",
+  "type": "Card",
+  "props": { "title": "团队容量" },
+  "slots": {
+    "footer": [
+      { "id": "planner", "type": "CapacityPlanner", "props": { "initial": 24 } }
+    ]
+  }
+}
+```
+
+## 使用组件样式，不强制文章排版
+
+h1 使用 Heading 组件自身的 Tailwind 样式，Grid 使用 Grid 的响应式布局，Card 使用 Card 的样式。JSON 不需要重复 CSS 值，也不能传入任意样式代码。页面不再使用强制 72ch 宽度或覆盖所有后代标题的 Document 包装。
+
+下方展示的是转换后的 json-render Spec，而非另一套组件实现：
 
 <ComponentPreview
   spec={{
-    root: "document",
+    root: "overview",
     elements: {
-      document: {
-        type: "Document",
-        props: {},
-        children: ["title", "paragraph", "quote", "list"],
+      overview: {
+        type: "Stack",
+        props: { gap: "lg" },
+        children: ["title", "metrics"],
       },
       title: {
         type: "Heading",
-        props: { text: "一份可以直接阅读的内容", level: 2 },
+        props: { level: 2, text: "显式数据，显式结构" },
       },
-      paragraph: {
-        type: "Text",
-        props: {
-          text: "先解释问题，再按需要增加证据与行动建议，不为了填满布局而重复数据。",
-        },
+      metrics: {
+        type: "Grid",
+        props: { columns: 2 },
+        children: ["members", "tasks"],
       },
-      quote: {
-        type: "Quote",
-        props: { text: "内容的顺序属于作者。", attribution: "内容设计约定" },
-      },
-      list: {
-        type: "ContentList",
-        props: {
-          items: [
-            "独立维护源文件",
-            "共享类型与渲染器",
-            "让正文顺序决定页面顺序",
-          ],
-          ordered: true,
-        },
-      },
+      members: { type: "Metric", props: { label: "成员", value: "24" } },
+      tasks: { type: "Metric", props: { label: "任务", value: "1280" } },
     },
   }}
 />
 
-## 编辑与验证
+## 校验与编辑
 
-工作台的“正文内容 JSON”字段可修改同一份内容块。保存前先解析 JSON，再进行共享 schema 校验；服务端 POST / PATCH 同样校验。错误保留输入，成功后会话详情立即使用新内容。这里刻意展示协议编辑器，不把它冒充富文本编辑器。
+这是白名单组件协议，不是任意 HTML 执行器。未知类型、额外属性、跨 children 与 slots 重复的 ID、错误表格行宽均被拒绝。禁止函数、JSX、组件模块路径和原始 HTML 注入。
 
-独立 SSR 路由仍读取仓库内的原始 mock JSON。会话修改不写回源码，不跨标签页同步，也不会改变部署后的服务端数据。
+工作台“页面节点树 JSON”编辑的是同一棵树。修改节点内容、增删节点、调整 children 顺序或 slots 后，客户端与 POST / PATCH 使用共享 schema 校验，成功后立即用相同渲染器展示。输入错误时保留编辑内容。
+
+这是协议编辑器，不是富文本编辑器；会话更改不写回源码或数据库，也不会改变独立 SSR 路由读取的初始 mock JSON。
+
+组件内部交互控件、标签和状态反馈属于受信任的组件实现，例如 CapacityPlanner 的输入控件；这里的一一对应指源页面节点与 Spec 节点，不声称每个最终 DOM 元素或交互文案都逐项写入 JSON。

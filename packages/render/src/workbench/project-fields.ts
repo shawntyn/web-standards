@@ -28,10 +28,10 @@ export const fields: {
   },
   {
     name: "content",
-    label: "正文内容块（JSON）",
+    label: "页面节点树（JSON）",
     type: "textarea",
     description:
-      '按数组顺序呈现。例：[{"id":"intro","type":"paragraph","text":"正文"}]；每块 ID 唯一，支持标题、段落、列表、引文、代码、表格等。',
+      '显式声明根节点、组件、props、children 与 slots。例：{"id":"title","type":"h1","props":{"text":"项目标题"}}；所有节点 ID 唯一，不自动添加标题或布局。',
   },
   { name: "progress", label: "进度（0–100）", type: "number" },
   { name: "members", label: "成员数", type: "number" },

@@ -1,9 +1,9 @@
 import type { Spec } from "@json-render/core";
 import type { Project } from "@repo/domain";
 import { projectContentSpec } from "@repo/render/projects";
-import { shell } from "../page-shell";
+import { validateSpec } from "../validate-spec";
 
+/** No page template or application chrome is injected into project content. */
 export function projectSpec(project: Project): Spec {
-  const content = projectContentSpec(project);
-  return shell(content.elements, [content.root]);
+  return validateSpec(projectContentSpec(project));
 }

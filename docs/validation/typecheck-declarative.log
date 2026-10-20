@@ -1,0 +1,17 @@
+$ pnpm -r typecheck
+packages/ui typecheck$ tsc --noEmit
+packages/domain typecheck$ tsc --noEmit
+packages/ui typecheck: Done
+packages/domain typecheck: Done
+packages/render typecheck$ tsc --noEmit
+packages/render typecheck: Done
+packages/data typecheck$ tsc --noEmit
+packages/data typecheck: Done
+apps/web typecheck$ next typegen && tsc --noEmit
+apps/docs typecheck$ next typegen && tsc --noEmit
+apps/web typecheck: Generating route types...
+apps/web typecheck: ✓ Types generated successfully
+apps/docs typecheck: Generating route types...
+apps/docs typecheck: ✓ Types generated successfully
+apps/web typecheck: Done
+apps/docs typecheck: Done

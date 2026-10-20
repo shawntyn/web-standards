@@ -1,94 +1,39 @@
 import type { Spec } from "@json-render/core";
-import { ProjectSchema, type ContentBlock, type Project } from "@repo/domain";
+import { ContentSchema, type Project, type ContentBlock } from "@repo/domain";
 
-type Node = Spec["elements"][string];
-type MappedBlock = { id: string; elements: Record<string, Node> };
-const node = (
-  type: string,
-  props: Record<string, unknown>,
-  children: string[] = [],
-  slots?: Record<string, string[]>,
-): Node => ({ type, props, children, ...(slots ? { slots } : {}) });
+type Element = Spec["elements"][string];
 
-// Content is a domain model, not a JSON-encoded component tree. This is the only
-// adapter that knows how a content block becomes a catalog component.
-function mapContentBlock(block: ContentBlock): MappedBlock {
-  const id = `content:${block.id}`;
-  let element: Node;
-  switch (block.type) {
-    case "heading":
-      element = node("Heading", { text: block.text, level: block.level });
-      break;
-    case "paragraph":
-      element = node("Text", { text: block.text });
-      break;
-    case "list":
-      element = node("ContentList", {
-        items: block.items,
-        ordered: block.ordered ?? false,
-      });
-      break;
-    case "quote":
-      element = node("Quote", {
-        text: block.text,
-        attribution: block.attribution,
-      });
-      break;
-    case "code":
-      element = node("Code", { code: block.code, label: block.language });
-      break;
-    case "table":
-      element = node("ContentTable", {
-        caption: block.caption,
-        columns: block.columns,
-        rows: block.rows,
-      });
-      break;
-    case "callout":
-      element = node("Callout", { title: block.title, text: block.text });
-      break;
-    case "capacity-plan":
-      return {
-        id,
-        elements: {
-          [id]: node(
-            "ContentSection",
-            { title: block.title, description: block.description },
-            [],
-            { interactive: [`slot:${block.id}:planner`] },
-          ),
-          [`slot:${block.id}:planner`]: node("CapacityPlanner", {
-            initial: block.initial,
-          }),
-        },
-      };
-    default: {
-      const unreachable: never = block;
-      throw new Error(`Unsupported content: ${String(unreachable)}`);
-    }
+/** Only protocol adaptation: semantic aliases do not add visible nodes. */
+function component(block: ContentBlock): Pick<Element, "type" | "props"> {
+  if (/^h[1-6]$/.test(block.type)) {
+    return {
+      type: "Heading",
+      props: { ...block.props, level: Number(block.type.slice(1)) },
+    };
   }
-  return { id, elements: { [id]: element } };
+  return { type: block.type === "p" ? "Text" : block.type, props: block.props };
 }
 
-export function projectContentSpec(project: Project): Spec {
-  // map preserves the author-controlled block order. Reordering/adding content
-  // requires editing only the project's JSON, never a route or page template.
-  const validProject = ProjectSchema.parse(project);
-  const blocks = validProject.content.map(mapContentBlock);
-  return {
-    root: "document",
-    elements: {
-      document: node("Document", {}, [
-        "document-title",
-        "document-description",
-        ...blocks.map((block) => block.id),
-      ]),
-      "document-title": node("Heading", { text: validProject.name, level: 1 }),
-      "document-description": node("Text", {
-        text: validProject.description,
-        tone: "muted",
-      }),
-      ...Object.assign({}, ...blocks.map((block) => block.elements)),
-    },
-  };
+/** Flatten the authored tree. Every input node produces exactly one element. */
+export function projectContentSpec(project: Pick<Project, "content">): Spec {
+  const content = ContentSchema.parse(project.content);
+  const elements: Spec["elements"] = {};
+  function mapNode(block: ContentBlock): string {
+    const children = block.children?.map(mapNode) ?? [];
+    const slots = block.slots
+      ? Object.fromEntries(
+          Object.entries(block.slots).map(([name, nodes]) => [
+            name,
+            nodes.map(mapNode),
+          ]),
+        )
+      : undefined;
+    elements[block.id] = {
+      ...component(block),
+      children,
+      ...(slots ? { slots } : {}),
+    };
+    return block.id;
+  }
+  return { root: mapNode(content), elements };
 }

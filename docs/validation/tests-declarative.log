@@ -1,0 +1,32 @@
+$ node --import tsx --test tests/*.test.ts
+✔ MDX preview adapter supplies required leaf children before strict validation (10.939095ms)
+✔ all page examples are valid catalog specs with resolved references (20.073613ms)
+✔ domain .map creates stable card IDs and named slots (1.689388ms)
+✔ unknown routes return no domain resource (0.206925ms)
+✔ real json-render SSR emits explicitly declared page structures and slots (90.655014ms)
+✔ project files are independent trees with genuinely different structures (14.828297ms)
+✔ every source node maps exactly once, preserving props, child order and explicit slots (26.423583ms)
+✔ h1 is explicit, metadata does not invent content, and a leaf needs no generated layout (7.489752ms)
+✔ reorder, remove and add nodes without changing a route or template (4.518397ms)
+✔ schema rejects unknown types, hidden props, duplicate tree IDs and malformed table rows (17.089695ms)
+✔ special slots contain only explicitly authored nodes and can be removed (5.375059ms)
+✔ invalid node references and unknown components are rejected (1.972902ms)
+✔ UI public entry is a barrel and each component has its own source file (5.454182ms)
+✔ shared CSS contains only theme/base and no component selectors or apply (2.398546ms)
+✔ grid variants are complete Tailwind classes, no inline layout styles (19.215498ms)
+✔ form primitives retain native semantics and accessible errors (9.028038ms)
+✔ special slot uses unique input ids and only numeric CSS variable styling (37.848486ms)
+✔ Code does not invent a visible label when the data omits it (1.958587ms)
+✔ workbench SSR renders table rows and valid catalog spec (161.860503ms)
+✔ domain maps records and field definitions into catalog nodes (2.968921ms)
+✔ API verifies malformed input, shared validation, immutable slug and simulated errors (20.168054ms)
+✔ actual editor validates, creates, edits, cancels, filters, persists and recovers from server failure (4585.123429ms)
+✔ content editing preserves order, validates JSON and updates the shared rendered tree (484.520623ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8451.438687

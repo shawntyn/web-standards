@@ -17,8 +17,6 @@ export { Textarea } from "./components/textarea";
 export { Select } from "./components/select";
 export { FormField } from "./components/form-field";
 export { Table } from "./components/table";
-export { Document } from "./components/document";
 export { ContentList } from "./components/content-list";
 export { Quote } from "./components/quote";
 export { ContentTable } from "./components/content-table";
-export { ContentSection } from "./components/content-section";

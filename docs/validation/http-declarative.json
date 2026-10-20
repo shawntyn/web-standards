@@ -1,0 +1,179 @@
+{
+  "verifiedAt": "2026-10-20T07:43:52.728Z",
+  "checks": [
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/projects",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/standards",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/projects/atlas",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/projects/orbit",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/projects/field",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/projects/missing",
+      "status": 404
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/content",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/primitives",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/card",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/button",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/metric",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/slot",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/table",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/form",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/workflow",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/missing",
+      "status": 404
+    },
+    {
+      "app": "web",
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 201
+    },
+    {
+      "app": "web",
+      "method": "PATCH",
+      "path": "/api/projects/atlas",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 422
+    },
+    {
+      "app": "web",
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 503
+    },
+    {
+      "app": "web",
+      "method": "PATCH",
+      "path": "/api/projects/other",
+      "status": 409
+    },
+    {
+      "app": "docs",
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 201
+    },
+    {
+      "app": "docs",
+      "method": "PATCH",
+      "path": "/api/projects/atlas",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 422
+    },
+    {
+      "app": "docs",
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 503
+    },
+    {
+      "app": "docs",
+      "method": "PATCH",
+      "path": "/api/projects/other",
+      "status": 409
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/api/projects",
+      "status": 200
+    }
+  ]
+}

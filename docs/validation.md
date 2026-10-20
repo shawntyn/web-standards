@@ -6,23 +6,23 @@
 
 Node.js 24.19.0 / pnpm 12.14.0 / Next.js 16.4.2 / React 19.3.1 / Tailwind CSS 4.3.3 / json-render 0.21.1 / TypeScript 6.0.3。版本与 lockfile 未因本次内容重构而升级。
 
-## 内容驱动重构
+## 声明式协议修正
 
-- 三个独立项目 JSON 文件分别是产品说明、编辑手记和分析报告。共享内容 schema，但实际内容块类型和顺序不同。
-- `content.map` 是唯一正文映射边界，文档内容决定顺序；不再固定添加指标卡、源码 JSON 或重复技术说明。
-- `Document` 提供阅读宽度与排版。只有 Atlas 的正文需要容量试算，使用 `interactive` 命名 slot。
-- data 和 domain 的入口只导出；仓储、内容契约、草稿、页面组合、HTTP mock 服务分开。工作台展示与状态 hook / session store 分开。
-- 基础 catalog / registry 不依赖工作台；应用 registry 组合基础定义和工作台，避免正文预览反向导入应用注册表形成循环。
-- 文档采用 9 个本地 MDX 文件，删除了不再使用的另一套文档数据和模板。
+- content 为显式根节点树，每个节点声明 id / type / props 及可选 children / slots。
+- 转换器仅展平结构并转换语义别名，节点数量和源树一致；不注入标题、描述、导航、默认容器或特殊 slot。
+- h1 至 h6 与 p 使用受信任组件，布局由 JSON 明确声明，移除强制文章式 Document 排版。
+- 三个独立项目文件声明不同组件树，工作台编辑同一树结构，旧会话数据通过 v3 key 隔离。
+- 基础与应用 catalog / registry 分层，文档继续使用本地 MDX。
 
-## 自动化验证
+## 自动化验证结果
 
-- `pnpm lint`、`pnpm format:check`、`pnpm typecheck`；另单独运行根目录 `tsc --noEmit`，覆盖测试源码类型。
-- `pnpm test`：20 项测试。覆盖真实 json-render SSR、三个文档结构差异、增加/删除/重排块无需修改模板、稳定 ID 与 slot 命名空间、未知类型/重复 ID/表格行宽拒绝、基础组件结构与语义、mock API、MDX 适配，以及 happy-dom 中的实际创建/编辑/取消/筛选/失败恢复/会话恢复。
-- 正文编辑测试实际进入 Orbit 表单，验证原内容未丢失，拒绝错误 JSON，保存新增和重排后的内容，检查渲染详情与 sessionStorage 一致。
-- 双站生产构建及真实 HTTP 验证使用 `pnpm build` 和 `pnpm test:http`。后者启动两个 Next 生产服务，检查完自动退出。结果见 `validation/http-content.json`；命令日志为 `*-content.log`。以这些本轮记录为准，旧日志仅保留作历史。
+本次 lint、format、workspace typecheck、根目录 tsc、23 项测试、双站 production build 与 29 项真实 HTTP 检查全部通过。记录见 validation/*-declarative.log 和 validation/http-declarative.json。旧的 *-content.log 与 http-content.json 仅代表上一次内容块版本。
 
-HTTP 检查包括三个项目的服务端正文、仅 Atlas 出现容量工具、Orbit 引用和代码、Field 数据表、9 篇 MDX、未知路径 404，以及两站 POST / PATCH 合法请求、内容校验 422、标识冲突 409、模拟错误 503。成功响应必须保留正文并声明 `serverStored: false`。
+第一次构建在编译成功后的 TypeScript 阶段被资源限制以 137 终止；释放并行验证任务后，以 1024 MiB Node heap 和两核 CPU affinity 串行重跑两站成功。未跳过类型检查，也未改变源码构建配置。
+
+核心测试检查每个源节点只映射一次、ID / props / children / slots 保真、h1 显式渲染、改变元数据不生成内容、删除标题不补回、叶节点不产生布局、嵌套与插槽 ID 唯一、拒绝未知类型及额外属性；交互测试覆盖编辑树、无效 JSON、保存、会话恢复。
+
+HTTP 脚本检查三页 SSR、只在声明时出现的容量工具、9 篇 MDX、404，以及两站 POST / PATCH 共享树校验及保留。成功响应必须保留 content 并声明 serverStored: false。
 
 ## 明确边界
 

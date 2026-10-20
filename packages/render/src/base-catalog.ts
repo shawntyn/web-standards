@@ -5,11 +5,6 @@ const text = z.string();
 const link = z.object({ label: text, href: text });
 export const baseCatalog = defineCatalog(schema, {
   components: {
-    Document: {
-      props: z.object({}),
-      slots: ["default"],
-      description: "按作者顺序呈现内容的阅读容器",
-    },
     ContentList: {
       props: z.object({
         items: z.array(text),
@@ -28,11 +23,6 @@ export const baseCatalog = defineCatalog(schema, {
         rows: z.array(z.array(text)),
       }),
       description: "正文中的数据表",
-    },
-    ContentSection: {
-      props: z.object({ title: text, description: text }),
-      slots: ["interactive"],
-      description: "含受控交互插槽的正文小节",
     },
     Frame: {
       props: z.object({ brand: text, subtitle: text, links: z.array(link) }),
@@ -53,7 +43,16 @@ export const baseCatalog = defineCatalog(schema, {
     Heading: {
       props: z.object({
         text,
-        level: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+        level: z
+          .union([
+            z.literal(1),
+            z.literal(2),
+            z.literal(3),
+            z.literal(4),
+            z.literal(5),
+            z.literal(6),
+          ])
+          .optional(),
         eyebrow: text.optional(),
       }),
       description: "语义化标题",

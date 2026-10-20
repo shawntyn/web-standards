@@ -1,0 +1,2 @@
+$ node scripts/verify-production.mjs
+29 production HTTP checks passed. SSR declared tree differences and API content preservation verified.

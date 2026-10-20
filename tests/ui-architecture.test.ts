@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
-import { Button, Input, FormField, Grid } from "../packages/ui/src/index";
+import { Button, Input, FormField, Grid, Code } from "../packages/ui/src/index";
 import { CapacityPlanner } from "../packages/render/src/components/capacity-planner";
 const ui = new URL("../packages/ui/src/", import.meta.url);
 test("UI public entry is a barrel and each component has its own source file", () => {
@@ -79,4 +79,16 @@ test("special slot uses unique input ids and only numeric CSS variable styling",
   assert.equal(new Set(ids).size, 2);
   assert.match(html, /--capacity:20%/);
   assert.match(html, /w-\[var\(--capacity\)\]/);
+});
+
+test("Code does not invent a visible label when the data omits it", () => {
+  const withoutLabel = renderToString(
+    createElement(Code, { code: "const value = 1;" }),
+  );
+  assert.match(withoutLabel, /const value = 1;/);
+  assert.doesNotMatch(withoutLabel, /SOURCE|border-b/);
+  const withLabel = renderToString(
+    createElement(Code, { code: "const value = 1;", label: "Explicit label" }),
+  );
+  assert.match(withLabel, /Explicit label/);
 });
