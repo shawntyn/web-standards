@@ -1,0 +1,80 @@
+import { ComponentPreview } from "../../components/component-preview";
+
+# 基础组件 · 布局与信息
+
+每个基础组件在 packages/ui/src/components 中有独立文件，从包入口显式导出。Tailwind utility classes 写在组件中；共享 CSS 只保留 Tailwind 入口、设计 token 和全局基础规则，不重新建立传统语义 class 样式库。
+
+## 布局 Props
+
+- Frame：brand、subtitle、links，default 插槽容纳页面内容。只在页面顶层使用。
+- Stack：gap 为 sm、md 或 lg，default 插槽构成垂直布局。
+- Grid：columns 为 1 到 4，default 插槽容纳响应式列。
+- Split：无业务 props，default 插槽容纳宽屏双栏、窄屏单栏内容。
+
+## 信息 Props
+
+- Heading：text，level 为 1、2、3，可选 eyebrow。页面应只有一个主标题。
+- Text：text，可选 tone 为 default 或 muted。
+- Badge：text，可选 tone 为 neutral、success 或 accent。状态不能只靠颜色表达。
+- Callout：title 和 text，用于明显说明，不当作交互按钮。
+- Code：code 和可选 label。代码作为文本展示，绝不执行。
+- Steps：items 数组，每项 title、description，表达顺序过程。
+
+<ComponentPreview
+  spec={{
+    root: "stack",
+    elements: {
+      stack: {
+        type: "Stack",
+        props: { gap: "md" },
+        children: ["heading", "text", "grid", "steps", "note", "code"],
+      },
+      heading: {
+        type: "Heading",
+        props: { text: "清晰而可组合", level: 2, eyebrow: "PRIMITIVES" },
+      },
+      text: {
+        type: "Text",
+        props: {
+          text: "布局、文字、状态都由相同的 JSON 协议描述。",
+          tone: "muted",
+        },
+      },
+      grid: {
+        type: "Grid",
+        props: { columns: 3 },
+        children: ["neutral", "success", "accent"],
+      },
+      neutral: { type: "Badge", props: { text: "尚未开始", tone: "neutral" } },
+      success: { type: "Badge", props: { text: "校验通过", tone: "success" } },
+      accent: { type: "Badge", props: { text: "需要关注", tone: "accent" } },
+      steps: {
+        type: "Steps",
+        props: {
+          items: [
+            { title: "业务数据", description: "从静态 JSON 读取种子。" },
+            { title: "映射与渲染", description: "转换为节点后交给注册表。" },
+          ],
+        },
+      },
+      note: {
+        type: "Callout",
+        props: {
+          title: "显式边界",
+          text: "基础展示组件不负责取数或业务持久化。",
+        },
+      },
+      code: {
+        type: "Code",
+        props: {
+          label: "纯文本，不执行",
+          code: "const spec = mapDomainToSpec(data);",
+        },
+      },
+    },
+  }}
+/>
+
+## 无障碍与变体
+
+布局不改变内容的 DOM 阅读顺序。标题层级由内容结构决定，不能为了视觉大小随意跳级。文字和交互焦点保持可见；长代码可以横向滚动。变体只使用有限枚举和完整 Tailwind 类名，避免通过字符串拼接生成不可扫描的类。

@@ -4,39 +4,44 @@
 
 ## 工具链
 
-- Node.js 24.19.0
-- pnpm 12.14.0（实际执行官方二进制）
-- Next.js 16.4.2 / React 19.3.1 / Tailwind CSS 4.3.3
-- json-render core/react 0.21.1
+- Node.js 24.19.0 / pnpm 12.14.0（官方二进制）。
+- Next.js 16.4.2 / React 19.3.1 / Tailwind CSS 4.3.3。
+- json-render core/react 0.21.1。
 - TypeScript 6.0.3；typescript-eslint 当前不支持 TS 7，未关闭类型检查规避问题。
 
-## 已通过
+## 本次修正后的验证
 
-- `pnpm lint`：退出 0，零警告、零错误。
-- `pnpm typecheck`：UI、render、data、web、docs 全部通过；Next 路由类型生成成功。
-- `pnpm test`：5/5 通过，含真实 json-render SSR 和命名 slot 内容断言。
-- `pnpm format:check`：全部文件格式通过。
-- 两站分别 `pnpm --filter @repo/web build`、`pnpm --filter @repo/docs build`：退出 0。
-- 构建输出标记首页、动态 slug、规范页和 API 为 `ƒ`（请求时服务端渲染），不是静态导出。
-- 两个生产服务在同一个执行环境中启动后进行真实 HTTP 验证：7 个页面检查全部通过，另有 API JSON 检查通过。
+- `pnpm format:check`、`pnpm lint`、`pnpm typecheck` 通过。
+- `pnpm test`：15/15 通过。包含真实 json-render SSR、命名 slot、独立组件结构、表格和表单语义、mock API 验证、MDX spec 适配回归，以及 happy-dom 中的创建、编辑、取消、筛选、校验、保存失败恢复、列表与会话详情同步、重新挂载恢复。
+- 两站生产构建通过。最后重新构建 docs，确认 MDX 叶节点补全空 children 的修复进入构建；适配后仍严格执行 catalog 与引用验证。
+- 两个生产服务在同一次执行环境中启动，真实 HTTP 回归 26 项全部通过。原始结果见 `validation/http-refactor.json`，含核实时间。
 
-| 应用 | 路径                | HTTP | 检查                                      |
-| ---- | ------------------- | ---- | ----------------------------------------- |
-| web  | /                   | 200  | 初始 HTML 包含首页正文                    |
-| web  | /projects/atlas     | 200  | 初始 HTML 包含 Atlas                      |
-| web  | /projects/missing   | 404  | 不存在的动态资源正确返回 404              |
-| web  | /standards          | 200  | 初始 HTML 包含规范正文                    |
-| docs | /                   | 200  | 初始 HTML 包含组件文档                    |
-| docs | /components/slot    | 200  | 初始 HTML 包含特殊组件 range input        |
-| docs | /components/missing | 404  | 不存在的组件正确返回 404                  |
-| web  | /api/projects       | 200  | 返回 3 条静态 mock 领域对象，而非 UI Spec |
+| 应用       | 路径                                                                                      | HTTP 与检查                                                    |
+| ---------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| web        | `/`、`/projects`、`/projects/atlas`、`/standards`                                         | 200，初始 HTML 包含对应正文                                    |
+| docs       | `/`                                                                                       | 200，初始 HTML 包含组件文档                                    |
+| docs       | `/components/primitives`、`card`、`button`、`metric`、`slot`、`table`、`form`、`workflow` | 8 篇本地 MDX 全部 200，包含 JSON 示例内容，无服务端错误 digest |
+| web / docs | `/projects/missing` / `/components/missing`                                               | 404                                                            |
+| 两站       | `POST /api/projects`                                                                      | 合法输入 201；无效字段 422；模拟失败 503                       |
+| 两站       | `PATCH /api/projects/atlas`                                                               | 200；标识不一致 409                                            |
+| web        | `GET /api/projects`                                                                       | 200，仍返回 3 条原始静态领域对象，写操作不篡改 JSON            |
 
-原始日志位于 `docs/validation/`。
+HTTP 写入成功响应均验证 `serverStored: false`。mock API 是服务端校验和响应模拟，并非持久化数据库；用户更改保存在当前浏览器标签页 sessionStorage，不能将它描述为跨用户或跨标签页共享持久化。本例覆盖创建、读取、编辑，不包含删除功能。
+
+## 独立源码复核
+
+- `packages/ui/src/components/` 有 19 个独立基础组件文件，入口 `index.ts` 仅导出；旧 `index.tsx` 已移除。
+- 组件使用 Tailwind utility 和静态 variant；共享 `styles.css` 仅保留 `@theme` 与全局 base，不含传统组件类定义或 `@apply`。
+- 两站分别使用 Tailwind v4 入口与显式 `@source` 扫描共享 UI、render 包。
+- 特殊容量组件的动态数值仅通过 CSS 自定义属性传入 utility，不是另一套组件 CSS。
+- `apps/web` 与 `apps/docs` 独立 Next 应用；共享 domain、data、ui、render 包职责分开。
+- 业务领域数据、表格行与表单字段通过映射构建 Spec，交由 catalog/registry 和真实 json-render Renderer 渲染。
+- 文档使用 8 个本地 MDX 文件和明确模块白名单，动态路由 await params，未知文档返回 404，不编译不可信远程 MDX。
 
 ## 预览部署与验证边界
 
-主站与组件文档已分别部署为保留 Next.js SSR 的 owner-private 预览，地址见 README。仓库公开不改变预览站的访问权限，需要项目所有者登录 ChatGPT。
+以上为源码生产构建、服务端 HTML、真实 HTTP 和 happy-dom 交互测试，不代表真实浏览器视觉、hydration 与全部交互已验收。没有完成真实浏览器视觉验证，不将 DOM 模拟测试写成浏览器验收。
 
-上述构建、SSR HTML、HTTP 状态与测试记录来自源码运行验证，不代表浏览器端视觉、hydration 与所有交互已完成验收。部署端的未登录请求会进入登录流程，不能将登录页响应当成应用页面验证结果。
+README 中的预览地址为 owner-private，需要项目所有者登录 ChatGPT；公开仓库不改变预览权限。此次源码验证不证明新修正已经部署；部署版本应另行核实。未登录登录页不算应用页面验收。
 
-没有将 localhost 作为可交付预览，也没有为取得链接改为静态导出。部署身份、凭证和本地构建产物不包含在公开源码中。
+没有将 localhost 作为交付链接，也没有改为静态导出。凭证和本地构建产物不包含在公开源码中。`validation/` 保留原始及本次日志；本次 HTTP 结果以 `http-refactor.json` 为准。

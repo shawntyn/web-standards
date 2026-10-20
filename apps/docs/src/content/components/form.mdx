@@ -1,0 +1,40 @@
+import { ComponentPreview } from "../../components/component-preview";
+import { projects } from "@repo/data";
+
+# Form · 编辑、校验与提交
+
+在下方预览选择“新建项目”或某一行的“编辑”，即可操作真实表单。客户端校验用于及时反馈，服务端 Route Handler 使用同一个领域 schema 独立校验。
+
+## Props 与字段变体
+
+- ProjectEditor：editing、busy、simulateError，默认插槽引用字段节点。
+- ProjectField：name、label、value、type、disabled、required，以及可选 error、description。
+- type 支持 text、number、textarea、select；由注册组件选择自建 Input、Textarea、Select 与 FormField。
+- 项目 slug 创建后不可修改；数字字段保留输入字符串，校验层负责转换与范围验证。
+- 功能清单每行一项，映射层转换为领域数组，而不是把表单字符串直接当作业务记录。
+- Button 区分提交与取消，不用链接模拟提交。busy 状态阻止重复提交。
+
+<ComponentPreview
+  spec={{
+    root: "workbench",
+    elements: {
+      workbench: {
+        type: "ProjectWorkbench",
+        props: { initialProjects: projects },
+      },
+    },
+  }}
+/>
+
+## 无障碍
+
+每个字段都有真实 label 与唯一 ID，错误信息和帮助文字通过描述关系关联。必填不只依赖星号；错误不只依赖颜色。提交结果使用状态区域通知，用户可用键盘完成输入、提交和取消。
+
+## 成功、失败与恢复
+
+1. 留空项目名称，确认校验阻止请求并提供字段级反馈。
+2. 填写有效内容并提交，检查列表与详情同步更新。
+3. 启用模拟错误，触发 503；输入必须保留，关闭模拟错误后可以重试。
+4. 取消编辑不写入状态；提交成功才保存当前标签页的 mock 状态。
+
+这里是真实 HTTP 请求和 mock 响应，不是生产持久化。刷新恢复当前标签页 sessionStorage；关闭标签页后清空。认证、授权、CSRF 防护和数据库事务需要在生产版本另外实现。

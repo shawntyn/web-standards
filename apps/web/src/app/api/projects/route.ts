@@ -5,3 +5,8 @@ export async function GET() {
     meta: { source: "static-json-mock", count: projects.length },
   });
 }
+
+import { handleMockMutation } from "@repo/domain";
+export async function POST(request: Request) {
+  return handleMockMutation(request);
+}

@@ -1,0 +1,47 @@
+import { ComponentPreview } from "../../components/component-preview";
+
+# LinkButton · 导航与操作的边界
+
+导航使用 LinkButton，提交、取消、重试使用 Button。不要用带 href 的链接模拟提交动作。
+
+## Props 与变体
+
+- label：必填，链接可见名称。
+- href：必填，目标地址；业务映射层只生成受信任站内路径。
+- variant：primary 或 secondary，默认 primary。
+- 不接受 JSON 中传入的 JavaScript、任意事件函数或模块路径。
+
+<ComponentPreview
+  spec={{
+    root: "buttons",
+    elements: {
+      buttons: {
+        type: "Stack",
+        props: { gap: "sm" },
+        children: ["primary", "secondary"],
+      },
+      primary: {
+        type: "LinkButton",
+        props: {
+          label: "开始编辑流程",
+          href: "/components/workflow",
+          variant: "primary",
+        },
+      },
+      secondary: {
+        type: "LinkButton",
+        props: {
+          label: "查看插槽协议",
+          href: "/components/slot",
+          variant: "secondary",
+        },
+      },
+    },
+  }}
+/>
+
+## 无障碍
+
+链接保留原生键盘激活与焦点轮廓。名称说明目的，而不是“点击这里”。正在提交和禁用是操作按钮的状态，应通过 disabled 和状态提示表达，不要只改变颜色。
+
+操作 Button 的 props、事件白名单和表单使用见 [表单流程](/components/form)。

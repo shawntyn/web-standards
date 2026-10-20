@@ -1,0 +1,34 @@
+import { ComponentPreview } from "../../components/component-preview";
+import { projects } from "@repo/data";
+
+# Table · 可操作的列表
+
+工作台不是写死的 HTML 表格。静态业务记录经过 map 转换为稳定的 ProjectRow 节点，ProjectTable 的 children 按节点 ID 引用这些行。
+
+## Props 与组合
+
+- ProjectWorkbench.initialProjects：经过共享 Zod schema 校验的项目数组。
+- ProjectTable.count：筛选后的行数；默认插槽包含 ProjectRow。
+- ProjectRow：完整项目记录与 busy 状态。项目 slug 作为稳定的业务标识，不使用数组索引。
+- 搜索和状态筛选位于 ProjectToolbar；无结果时展示明确空状态。
+- 基础 Table 在 packages/ui，业务行和动作绑定位于 packages/render/workbench，不把业务逻辑塞进基础组件。
+
+<ComponentPreview
+  spec={{
+    root: "workbench",
+    elements: {
+      workbench: {
+        type: "ProjectWorkbench",
+        props: { initialProjects: projects },
+      },
+    },
+  }}
+/>
+
+## 无障碍与交互
+
+保留 table、表头和单元格的原生语义。横向溢出由容器处理，不能裁掉窄屏上的操作按钮。行操作使用有可见名称的按钮；提交中禁用冲突操作，空列表仍显示标题和操作入口。
+
+## 状态与验收
+
+输入关键词、切换状态、打开某一行查看或编辑，再观察提交成功后的列表更新。数据仅在当前标签页模拟保存，不跨用户同步。完整存储边界见 [工作流说明](/components/workflow)。

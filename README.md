@@ -45,7 +45,9 @@ apps/
     page.tsx
     components/[slug]/page.tsx
 packages/
-  ui/src/           自建视觉组件与共享 CSS，无外部 UI 库
+  ui/src/components/ 每个基础组件一个文件，无外部 UI 库
+  ui/src/index.ts    仅 barrel exports
+  ui/src/styles.css  Tailwind theme tokens + 全局 base
   render/src/       catalog、typed registry、官方 Renderer、特殊组件
   data/src/         原始 JSON、Zod schema、显式 map 到 Spec
  tests/             数据契约、引用完整性、真实 SSR 检查
@@ -68,7 +70,7 @@ packages/
 ## Catalog / Registry / Spec
 
 - `catalog.ts`：Zod props 契约，以及允许的 default/header/footer slot。
-- `index.tsx`：受信任组件实现的注册表；没有动态 import 任意路径或执行 JSON 内代码。
+- `registry.tsx`：受信任组件实现的注册表；没有动态 import 任意路径或执行 JSON 内代码。
 - `Spec`：`{ root, elements }`，节点 `type` 指向组件名，children/slots 存节点 ID。
 - UI 包：语义化 React 组件，只接普通 props 和 ReactNode；不了解 json-render。
 
@@ -80,7 +82,11 @@ packages/
 
 ## Tailwind CSS
 
-使用 v4 CSS-first 配置：`@import "tailwindcss"`、`@theme`、`@source`；PostCSS 使用 `@tailwindcss/postcss`。共享设计 tokens 与基础 CSS 在 UI 包。Tailwind 静态扫描显式涵盖 workspace 源码；不拼接无法被扫描器识别的 utility 类名。
+使用 v4 CSS-first 配置：`@import "tailwindcss"`、`@theme`、`@source`；PostCSS 使用 `@tailwindcss/postcss`。共享设计 tokens 与必要全局 reset 在 UI 包的 styles.css。组件的布局、颜色、响应式、hover、disabled、aria-invalid 状态全部用 JSX 中的 Tailwind utilities，不定义 .card / .button 等传统组件选择器，也不使用 @apply。Tailwind 静态扫描显式涵盖 workspace 源码；变体采用完整静态类名映射，禁止拼接无法被扫描器识别的 utility 类名。
+
+每个基础组件独立放在 packages/ui/src/components/<kebab-case>.tsx，index.ts 只导出。Button 是原生按钮，LinkButton 是 Next.js 导航链接；Input、Textarea、Select、FormField、Table 提供语义与错误/禁用状态，但不承担业务保存。特殊组件在 packages/render/src/components，registry.tsx 只负责协议到实现的适配，spec-view.tsx 只组合官方 Provider / Renderer。
+
+CapacityPlanner 的宽度是运行时连续数值，唯一动态 style 仅传 --capacity CSS 变量，静态 Tailwind 类 w-[var(--capacity)] 消费它；不生成动态类名，不用 inline style 替代组件样式。useId 保证多实例 label / input 关联不冲突。
 
 ## 服务端 API 与 mock
 
@@ -88,7 +94,7 @@ packages/
 
 ## 测试与边界
 
-`pnpm test` 检查全部示例 Spec、稳定 ID、命名 slots、无效引用拒绝和真实 React SSR 文本。生产构建后还应检查有效动态路由的 HTML、无效 slug 的 HTTP 404、API 数据与浏览器 hydration。
+`pnpm test` 检查全部示例 Spec、稳定 ID、命名 slots、无效引用拒绝和真实 React SSR 文本；另检查一组件一文件、barrel-only 入口、共享 CSS 无组件选择器 / @apply、完整网格变体、表单语义及插槽组件唯一 ID。生产构建后还应检查有效动态路由的 HTML、无效 slug 的 HTTP 404、API 数据与浏览器 hydration。
 
 性能/可访问性：原生语义元素、可见焦点、range label、aria-live、响应式布局、减少动画偏好；无远程字体依赖。
 
@@ -106,4 +112,4 @@ packages/
 
 本项目演示明确的架构取舍，不宣称所有团队必须使用完全相同的目录结构。
 
-UI 包是 Next.js 专用基础组件库：导航组件 LinkButton 与 Frame 使用 next/link；LinkButton 是链接而非提交按钮。需要表单行为时应另定义原生 button 组件。
+UI 包是 Next.js 专用基础组件库：导航组件 LinkButton 与 Frame 使用 next/link；LinkButton 是链接而非提交按钮。表单行为使用独立的原生 Button 组件。

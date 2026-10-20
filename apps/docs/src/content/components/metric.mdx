@@ -1,0 +1,32 @@
+import { ComponentPreview } from "../../components/component-preview";
+
+# Metric · 指标展示
+
+将数值、含义和数据来源分开，避免脱离上下文展示一个大数字。
+
+## Props 与变体
+
+- value：必填字符串，已按业务规则格式化。
+- label：必填字符串，指标名称。
+- detail：可选字符串，统计范围或 mock 提示。
+- 没有隐式取数、计数动画或颜色推断逻辑。
+
+<ComponentPreview
+  spec={{
+    root: "metric",
+    elements: {
+      metric: {
+        type: "Metric",
+        props: {
+          value: "99.8%",
+          label: "服务可用性",
+          detail: "静态 mock 数据，不代表真实 SLA",
+        },
+      },
+    },
+  }}
+/>
+
+## 无障碍
+
+数值和含义均为真实文本。不能只依靠红绿颜色传递趋势；必要时以文字补充统计时间、单位和趋势。

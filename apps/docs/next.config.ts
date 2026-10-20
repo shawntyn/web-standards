@@ -1,5 +1,7 @@
+import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 const config: NextConfig = {
-  transpilePackages: ["@repo/ui", "@repo/render", "@repo/data"],
+  pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
+  transpilePackages: ["@repo/ui", "@repo/render", "@repo/data", "@repo/domain"],
 };
-export default config;
+export default createMDX()(config);

@@ -1,0 +1,41 @@
+# 从 mock JSON 到完整编辑闭环
+
+这不是静态表单截图：项目工作台提供列表、筛选、新建、编辑、校验、提交、成功反馈以及可恢复的失败示例。
+
+## 数据流与职责
+
+1. packages/data 从静态 JSON 读取并校验种子数据。
+2. 映射层用 map 将业务记录转换为 json-render 所需的节点、props 和 ID；页面不直接拼业务 JSX。
+3. apps/web 的服务端页面在请求时构建 spec，交给 SpecView 和注册表渲染。
+4. ProjectWorkbench 是显式注册的交互边界。它的表格和表单也通过内部 JSON spec 渲染，而不是跳过 Renderer。
+5. 浏览器提交 POST / PATCH 请求；Route Handler 使用 packages/domain 共享 Zod schema 再次校验输入。
+6. 成功响应更新同一份客户端状态，列表立即反映修改；失败保留用户输入并显示错误。
+
+## Mock 存储边界
+
+服务器不持久化提交内容，不提供数据库、身份认证或多人同步。客户端以 sessionStorage 保留当前标签页的修改，刷新可恢复，关闭标签页后清空。不要将演示误用为生产数据库实现。
+
+## 验收路径
+
+- 新建：打开表单，填写字段，提交后检查新增行。
+- 编辑：从某一行进入编辑，修改名称或状态，提交后检查同一行更新。
+- 校验：空必填值不能成功提交；服务端不能只信任客户端校验。
+- 失败：触发模拟 503，确认错误可见、内容保留、能够再次提交。
+- 取消：不提交更改，返回列表。
+
+## MDX 与 json-render 的边界
+
+本页正文来自仓库内受信任 MDX，由服务端编译为文档排版。所有业务组件的实时预览通过 ComponentPreview → SpecView → Renderer → catalog / registry 渲染。文档不是运行任意远程 MDX 的 CMS。
+
+组件实现放 packages/ui，协议放 packages/render，业务 schema 放 packages/domain，演示主站和文档分别属于 apps/web 与 apps/docs。路由组只适合一个应用内部的组织，不用于替代两个独立应用。
+
+参见 [表格](/components/table)、[表单](/components/form) 和 [命名插槽](/components/slot)。
+
+## 官方规范依据
+
+- [Next.js MDX：本地文件、App Router 与 mdx-components](https://nextjs.org/docs/app/guides/mdx)
+- [Next.js 项目结构与组织](https://nextjs.org/docs/app/getting-started/project-structure)
+- [Tailwind CSS 源文件检测](https://tailwindcss.com/docs/detecting-classes-in-source-files)
+- [pnpm workspaces](https://pnpm.io/workspaces)
+
+项目固定依赖并提交 lockfile，升级必须重新验证类型、lint、构建和交互流程；“最新”不是跳过版本锁定或将浮动依赖直接部署。

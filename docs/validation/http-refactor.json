@@ -1,0 +1,306 @@
+{
+  "verifiedAt": "2026-10-20T03:08:21.640Z",
+  "results": [
+    {
+      "port": 3000,
+      "path": "/",
+      "status": 200,
+      "contains": "好的规范",
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "path": "/projects",
+      "status": 200,
+      "contains": "新建项目",
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "path": "/projects/atlas",
+      "status": 200,
+      "contains": "Atlas",
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "path": "/standards",
+      "status": 200,
+      "contains": "架构",
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/",
+      "status": 200,
+      "contains": "组件",
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/components/primitives",
+      "status": 200,
+      "contains": "JSON",
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/components/card",
+      "status": 200,
+      "contains": "JSON",
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/components/button",
+      "status": 200,
+      "contains": "JSON",
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/components/metric",
+      "status": 200,
+      "contains": "JSON",
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/components/slot",
+      "status": 200,
+      "contains": "JSON",
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/components/table",
+      "status": 200,
+      "contains": "JSON",
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/components/form",
+      "status": 200,
+      "contains": "JSON",
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/components/workflow",
+      "status": 200,
+      "contains": "JSON",
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "path": "/projects/missing",
+      "status": 404,
+      "expected": 404,
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "path": "/components/missing",
+      "status": 404,
+      "expected": 404,
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 201,
+      "expected": 201,
+      "body": {
+        "data": {
+          "slug": "atlas",
+          "name": "Atlas 工作空间",
+          "category": "产品应用",
+          "description": "把业务数据与界面协议分开。一个真实动态路由，展示项目详情、数据转换与特殊组件插槽。",
+          "status": "运行中",
+          "progress": 84,
+          "members": 24,
+          "tasks": 1280,
+          "features": [
+            "请求时服务端渲染",
+            "参数与数据双重校验",
+            "显式 map 转换 Spec"
+          ]
+        },
+        "meta": {
+          "persistence": "client-session-only",
+          "serverStored": false
+        }
+      },
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "method": "PATCH",
+      "path": "/api/projects/atlas",
+      "status": 200,
+      "expected": 200,
+      "body": {
+        "data": {
+          "slug": "atlas",
+          "name": "HTTP 验证更新",
+          "category": "产品应用",
+          "description": "把业务数据与界面协议分开。一个真实动态路由，展示项目详情、数据转换与特殊组件插槽。",
+          "status": "运行中",
+          "progress": 84,
+          "members": 24,
+          "tasks": 1280,
+          "features": [
+            "请求时服务端渲染",
+            "参数与数据双重校验",
+            "显式 map 转换 Spec"
+          ]
+        },
+        "meta": {
+          "persistence": "client-session-only",
+          "serverStored": false
+        }
+      },
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 422,
+      "expected": 422,
+      "body": {
+        "error": "数据校验失败",
+        "issues": {
+          "project": ["Too small: expected number to be >=1"]
+        }
+      },
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "method": "PATCH",
+      "path": "/api/projects/other",
+      "status": 409,
+      "expected": 409,
+      "body": {
+        "error": "编辑时不能更改项目标识"
+      },
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 503,
+      "expected": 503,
+      "body": {
+        "error": "模拟服务端错误：数据未保存，可取消模拟后重试"
+      },
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 201,
+      "expected": 201,
+      "body": {
+        "data": {
+          "slug": "atlas",
+          "name": "Atlas 工作空间",
+          "category": "产品应用",
+          "description": "把业务数据与界面协议分开。一个真实动态路由，展示项目详情、数据转换与特殊组件插槽。",
+          "status": "运行中",
+          "progress": 84,
+          "members": 24,
+          "tasks": 1280,
+          "features": [
+            "请求时服务端渲染",
+            "参数与数据双重校验",
+            "显式 map 转换 Spec"
+          ]
+        },
+        "meta": {
+          "persistence": "client-session-only",
+          "serverStored": false
+        }
+      },
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "method": "PATCH",
+      "path": "/api/projects/atlas",
+      "status": 200,
+      "expected": 200,
+      "body": {
+        "data": {
+          "slug": "atlas",
+          "name": "HTTP 验证更新",
+          "category": "产品应用",
+          "description": "把业务数据与界面协议分开。一个真实动态路由，展示项目详情、数据转换与特殊组件插槽。",
+          "status": "运行中",
+          "progress": 84,
+          "members": 24,
+          "tasks": 1280,
+          "features": [
+            "请求时服务端渲染",
+            "参数与数据双重校验",
+            "显式 map 转换 Spec"
+          ]
+        },
+        "meta": {
+          "persistence": "client-session-only",
+          "serverStored": false
+        }
+      },
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 422,
+      "expected": 422,
+      "body": {
+        "error": "数据校验失败",
+        "issues": {
+          "project": ["Too small: expected number to be >=1"]
+        }
+      },
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "method": "PATCH",
+      "path": "/api/projects/other",
+      "status": 409,
+      "expected": 409,
+      "body": {
+        "error": "编辑时不能更改项目标识"
+      },
+      "ok": true
+    },
+    {
+      "port": 3001,
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 503,
+      "expected": 503,
+      "body": {
+        "error": "模拟服务端错误：数据未保存，可取消模拟后重试"
+      },
+      "ok": true
+    },
+    {
+      "port": 3000,
+      "path": "/api/projects",
+      "method": "GET",
+      "status": 200,
+      "count": 3,
+      "ok": true
+    }
+  ]
+}

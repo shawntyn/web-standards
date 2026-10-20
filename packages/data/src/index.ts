@@ -2,18 +2,8 @@ import { z } from "zod";
 import type { Spec } from "@json-render/core";
 import { catalog } from "@repo/render/catalog";
 import rawProjects from "./projects.json";
-export const ProjectSchema = z.object({
-  slug: z.string().regex(/^[a-z0-9-]+$/),
-  name: z.string(),
-  category: z.string(),
-  description: z.string(),
-  status: z.string(),
-  progress: z.number().min(0).max(100),
-  members: z.number().int().positive(),
-  tasks: z.number().int().nonnegative(),
-  features: z.array(z.string()),
-});
-export type Project = z.infer<typeof ProjectSchema>;
+import { ProjectSchema, type Project } from "@repo/domain";
+export { ProjectSchema, type Project } from "@repo/domain";
 export const projects = z.array(ProjectSchema).parse(rawProjects);
 export function getProject(slug: string) {
   return projects.find((project) => project.slug === slug);
@@ -70,6 +60,7 @@ function shell(
             : [
                 { label: "项目示例", href: "/" },
                 { label: "架构规范", href: "/standards" },
+                { label: "项目工作台", href: "/projects" },
                 {
                   label: "组件文档 ↗",
                   href: process.env.DOCS_ORIGIN ?? "http://localhost:3001",
@@ -404,5 +395,24 @@ export function componentSpec(slug: string): Spec | undefined {
     },
     ["back", "title", "desc", "split", "boundary"],
     true,
+  );
+}
+
+export function workbenchSpec(): Spec {
+  return shell(
+    {
+      title: node("Heading", {
+        text: "项目工作台",
+        level: 1,
+        eyebrow: "MOCK CRUD / REAL HTTP",
+      }),
+      workbench: node("ProjectWorkbench", {
+        initialProjects: projects.map((project) => ({
+          ...project,
+          features: [...project.features],
+        })),
+      }),
+    },
+    ["title", "workbench"],
   );
 }

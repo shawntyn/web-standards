@@ -13,10 +13,16 @@
     "react-dom": "19.3.1",
     "@repo/ui": "workspace:*",
     "@repo/render": "workspace:*",
-    "@repo/data": "workspace:*"
+    "@repo/data": "workspace:*",
+    "@next/mdx": "16.4.2",
+    "@mdx-js/loader": "3.1.1",
+    "@mdx-js/react": "3.1.1",
+    "@json-render/core": "0.21.1",
+    "@repo/domain": "workspace:*"
   },
   "devDependencies": {
     "tailwindcss": "4.3.3",
-    "@tailwindcss/postcss": "4.3.3"
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/mdx": "2.0.14"
   }
 }

@@ -1,0 +1,41 @@
+import { ComponentPreview } from "../../components/component-preview";
+
+# Card · 组合容器
+
+Card 提供默认内容以及 header、footer 命名插槽。它只管理展示，不获取数据，也不隐藏业务状态。
+
+## Props 与变体
+
+- title：可选字符串，卡片标题。
+- description：可选字符串，辅助说明。
+- children：默认插槽，由节点 ID 数组连接。
+- header / footer：命名插槽，放标签、导航或受信任交互组件。
+- 容器不提供无意义的视觉变体；内容层级通过组合表达。
+
+<ComponentPreview
+  spec={{
+    root: "card",
+    elements: {
+      card: {
+        type: "Card",
+        props: { title: "发布审核", description: "组合而非继承" },
+        children: ["body"],
+        slots: { header: ["status"], footer: ["link"] },
+      },
+      body: { type: "Text", props: { text: "检查所有必填字段后再提交。" } },
+      status: { type: "Badge", props: { text: "草稿", tone: "accent" } },
+      link: {
+        type: "LinkButton",
+        props: {
+          label: "查看完整编辑流程",
+          href: "/components/workflow",
+          variant: "secondary",
+        },
+      },
+    },
+  }}
+/>
+
+## 无障碍
+
+卡片不是按钮，不要给整个容器加 click handler。交互入口使用明确命名的链接或按钮。文档页面有唯一一级标题；卡片标题采用较低层级。

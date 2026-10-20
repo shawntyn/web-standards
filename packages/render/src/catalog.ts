@@ -1,10 +1,15 @@
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
 import { z } from "zod";
+import { ProjectListSchema } from "@repo/domain";
 const text = z.string();
 const link = z.object({ label: text, href: text });
 export const catalog = defineCatalog(schema, {
   components: {
+    ProjectWorkbench: {
+      props: z.object({ initialProjects: ProjectListSchema }),
+      description: "真实 HTTP 校验与标签页隔离的 Mock CRUD 工作台",
+    },
     Frame: {
       props: z.object({ brand: text, subtitle: text, links: z.array(link) }),
       slots: ["default"],

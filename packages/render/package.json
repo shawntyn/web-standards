@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.tsx",
+    ".": "./src/index.ts",
     "./catalog": "./src/catalog.ts"
   },
   "scripts": {
@@ -14,7 +14,8 @@
     "@repo/ui": "workspace:*",
     "@json-render/core": "0.21.1",
     "@json-render/react": "0.21.1",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "@repo/domain": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.3.1"

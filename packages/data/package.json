@@ -12,6 +12,7 @@
   "dependencies": {
     "@repo/render": "workspace:*",
     "@json-render/core": "0.21.1",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "@repo/domain": "workspace:*"
   }
 }
