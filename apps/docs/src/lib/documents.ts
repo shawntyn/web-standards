@@ -1,3 +1,4 @@
+import Charts from "../content/components/charts.mdx";
 import ContentModel from "../content/components/content.mdx";
 import Primitives from "../content/components/primitives.mdx";
 import Card from "../content/components/card.mdx";
@@ -10,6 +11,12 @@ import Form from "../content/components/form.mdx";
 
 // Explicit local allowlist: never resolve untrusted route text into a file path.
 export const documents = [
+  {
+    slug: "charts",
+    title: "数据图表",
+    description: "查询 rows、显式 map、图表/进度与空状态",
+    Content: Charts,
+  },
   {
     slug: "content",
     title: "内容驱动渲染",

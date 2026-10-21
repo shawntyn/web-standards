@@ -5,6 +5,10 @@ import * as UI from "@repo/ui";
 import { baseCatalog } from "./base-catalog";
 import { CapacityPlanner } from "./components/capacity-planner";
 export const baseComponents = {
+  LineChart: ({ props }) => <UI.LineChart {...props} />,
+  BarChart: ({ props }) => <UI.BarChart {...props} />,
+  DistributionChart: ({ props }) => <UI.DistributionChart {...props} />,
+  ProgressList: ({ props }) => <UI.ProgressList {...props} />,
   ContentList: ({ props }) => <UI.ContentList {...props} />,
   Quote: ({ props }) => <UI.Quote {...props} />,
   ContentTable: ({ props }) => <UI.ContentTable {...props} />,

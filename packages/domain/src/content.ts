@@ -1,3 +1,4 @@
+import { ChartPropsSchema, ProgressPropsSchema } from "./data-display";
 import { z } from "zod";
 
 const id = z
@@ -9,6 +10,10 @@ const text = z.string().min(1).max(20000);
 const heading = z.object({ text, eyebrow: text.optional() }).strict();
 const empty = z.object({}).strict();
 const propsSchemas = {
+  LineChart: ChartPropsSchema,
+  BarChart: ChartPropsSchema,
+  DistributionChart: ChartPropsSchema,
+  ProgressList: ProgressPropsSchema,
   h1: heading,
   h2: heading,
   h3: heading,
@@ -81,6 +86,10 @@ const leaf = <K extends NodeKind>(type: K) =>
 export const ContentBlockSchema: z.ZodType<ContentBlock> = z.lazy(() => {
   const children = z.array(ContentBlockSchema).max(100).optional();
   return z.union([
+    leaf("LineChart"),
+    leaf("BarChart"),
+    leaf("DistributionChart"),
+    leaf("ProgressList"),
     leaf("h1"),
     leaf("h2"),
     leaf("h3"),

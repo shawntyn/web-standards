@@ -139,3 +139,16 @@ CapacityPlanner 的宽度是运行时连续数值，唯一动态 style 仅传 --
 本项目演示明确的架构取舍，不宣称所有团队必须使用完全相同的目录结构。
 
 UI 包是 Next.js 专用基础组件库：导航组件 LinkButton 与 Frame 使用 next/link；LinkButton 是链接而非提交按钮。表单行为使用独立的原生 Button 组件。
+
+## 数据实验室（查询结果 → map → json-render）
+
+新增主站动态路由 `/analytics/commerce`、`/analytics/empty`、`/analytics/zero`，组件文档 `/components/charts`。原项目详情、工作台、表单和文档保留。
+
+- `packages/data/src/analytics/fixtures/*.json`：数据库查询结果形状的静态 rows。每日订单、渠道聚合、状态聚合和团队目标不是 UI Spec，也没有真实数据库连接。
+- `repository.ts`：场景白名单读取、query schema 校验，未知场景返回 absent，由 Next 路由产生 404。真实系统可在这里替换为驱动查询（日期顺序由 SQL ORDER BY 保证）。
+- `display.json`：独立、可修改的展示组件树以及明确绑定。标题、说明、单位、布局、顺序、空态文案由此声明；不从数据存在与否猜测页面结构。
+- `mapping.ts`：显式 `.map` 将查询字段转换为 points/items/rows，再复用现有 `projectContentSpec` 一节点一元素协议，不在 mapper 偷加标题、容器或 slot。
+- `packages/ui/src/components`：自研 LineChart / BarChart / DistributionChart / ProgressList，通用组件不取数或依赖业务仓储，统一注册至已有 catalog / registry。ContentTable 复用原组件。
+- 页内依次展示实际查询 rows、展示配置与生成 Spec；快照排除显式调试节点避免自递归。请求时服务器取数、转换并 SSR，而不是客户端 fetch 空壳。
+
+当前契约专注非负计数：0 保留，空 rows 显式空态；目标 max 为正且 value 不超过目标。未知查询列、负数、非有限值和非法绑定拒绝。图表有可读文本/表格回退和 SVG 名称，进度为原生带名称 progress；不以色彩作为唯一信息来源。金额、负增长和缺失日期应另建业务契约，不能用本示例计数规则静默修正。

@@ -59,6 +59,12 @@ try {
   await inspect(web, "/", 200, /从数据走到页面/);
   await inspect(web, "/projects", 200, /项目工作台/);
   await inspect(web, "/standards", 200, /清晰边界/);
+  for (const slug of ["commerce", "empty", "zero"]) {
+    const html = await inspect(web, `/analytics/${slug}`, 200, /查询结果/);
+    assert.match(html, /<h1/);
+    if (slug !== "empty") assert.match(html, /<svg/);
+  }
+  await inspect(web, "/analytics/missing", 404);
   const atlas = await inspect(web, "/projects/atlas", 200, /试算团队容量/);
   const orbit = await inspect(
     web,
@@ -76,6 +82,7 @@ try {
   await inspect(web, "/projects/missing", 404);
   await inspect(docs, "/", 200, /内容驱动渲染/);
   for (const slug of [
+    "charts",
     "content",
     "primitives",
     "card",

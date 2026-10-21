@@ -20,3 +20,14 @@ export { Table } from "./components/table";
 export { ContentList } from "./components/content-list";
 export { Quote } from "./components/quote";
 export { ContentTable } from "./components/content-table";
+export { LineChart, type LineChartProps } from "./components/line-chart";
+export { BarChart, type BarChartProps } from "./components/bar-chart";
+export {
+  DistributionChart,
+  type DistributionChartProps,
+} from "./components/distribution-chart";
+export {
+  ProgressList,
+  type ProgressListProps,
+} from "./components/progress-list";
+export type { ChartPoint, ChartProps } from "./components/chart-data";

@@ -18,6 +18,7 @@ export function shell(
           links: [
             { label: "项目示例", href: "/" },
             { label: "架构规范", href: "/standards" },
+            { label: "数据实验室", href: "/analytics/commerce" },
             { label: "项目工作台", href: "/projects" },
             {
               label: "组件文档 ↗",

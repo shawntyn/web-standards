@@ -1,0 +1,115 @@
+import { ComponentPreview } from "../../components/component-preview";
+
+# 数据图表 · 查询结果不是 UI Spec
+
+LineChart、BarChart、DistributionChart、ProgressList 都是自研组件，位于 packages/ui；不取数、不排序，不依赖业务仓储。它们经同一个 catalog / registry 和官方 Renderer 渲染。数据实验室路由为主站 /analytics/commerce、/analytics/empty、/analytics/zero。
+
+## 一条可检查的数据链
+
+1. packages/data/src/analytics/fixtures：模拟数据库驱动返回的 daily、channels、statuses、goals 聚合 rows。
+2. repository.ts：查询场景白名单及 Zod 校验，不执行 SQL，也不连接真实数据库。
+3. display.json：独立声明标题、布局、组件顺序、单位、空态文案和数据绑定。
+4. mapping.ts：显式 rows.map，将 day/order_count 转为 label/value；目标值映射为 value/max；表格单元格映射为字符串。
+5. projectContentSpec：复用原有声明式内容转换，生成官方 Spec；catalog 校验后交给注册表。
+
+页面同时展示查询 rows、展示配置与生成 Spec。调试快照排除调试节点本身，防止递归膨胀。此流程不修改项目内容编辑协议，也不把业务字段隐式补成标题。
+
+## 折线图与零值
+
+<ComponentPreview
+  spec={{
+    root: "chart",
+    elements: {
+      chart: {
+        type: "LineChart",
+        props: {
+          title: "每日请求",
+          description: "零不是缺失值",
+          unit: "次",
+          emptyText: "暂无记录",
+          points: [
+            { label: "周一", value: 18 },
+            { label: "周二", value: 0 },
+            { label: "周三", value: 32 },
+          ],
+        },
+      },
+    },
+  }}
+/>
+
+## 分类、分布与目标
+
+<ComponentPreview
+  spec={{
+    root: "grid",
+    elements: {
+      grid: {
+        type: "Grid",
+        props: { columns: 2 },
+        children: ["bar", "distribution", "progress"],
+      },
+      bar: {
+        type: "BarChart",
+        props: {
+          title: "渠道请求",
+          unit: "次",
+          emptyText: "暂无记录",
+          points: [
+            { label: "网页", value: 48 },
+            { label: "API", value: 32 },
+          ],
+        },
+      },
+      distribution: {
+        type: "DistributionChart",
+        props: {
+          title: "完成状态",
+          unit: "项",
+          emptyText: "暂无记录",
+          points: [
+            { label: "完成", value: 80 },
+            { label: "等待", value: 20 },
+          ],
+        },
+      },
+      progress: {
+        type: "ProgressList",
+        props: {
+          title: "里程碑",
+          emptyText: "暂无目标",
+          items: [
+            { label: "测试", value: 6, max: 10 },
+            { label: "迁移", value: 0, max: 8 },
+          ],
+        },
+      },
+    },
+  }}
+/>
+
+## 空结果与无障碍
+
+<ComponentPreview
+  spec={{
+    root: "empty",
+    elements: {
+      empty: {
+        type: "LineChart",
+        props: {
+          title: "空查询",
+          unit: "单",
+          emptyText: "查询没有返回记录，不等于返回零值",
+          points: [],
+        },
+      },
+    },
+  }}
+/>
+
+- 折线图使用语义 SVG 和可读数据表，不依赖颜色表达数值。
+- 分类图和分布图保留每一项的标签、真实值与单位。
+- ProgressList 使用有名称的原生 progress；value 必须在 0 到正数 max 之间。
+- 空数组明确为空结果，全零数据仍保留全部行，占比为 0%，不生成 NaN。
+- 当前是非负计数的展示契约；不接受负数、非有限值、null。金融盈亏等有符号场景应另定义契约，不能默默夹到零。
+- 查询结果顺序就是展示顺序。模拟的 daily 已按日期排列；真实 repository 应通过 ORDER BY 保证，而不是图表自行重排。

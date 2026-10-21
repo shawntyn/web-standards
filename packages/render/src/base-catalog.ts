@@ -1,3 +1,4 @@
+import { ChartPropsSchema, ProgressPropsSchema } from "@repo/domain";
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
 import { z } from "zod";
@@ -5,6 +6,19 @@ const text = z.string();
 const link = z.object({ label: text, href: text });
 export const baseCatalog = defineCatalog(schema, {
   components: {
+    LineChart: {
+      props: ChartPropsSchema,
+      description: "时间序列折线及可访问数据表",
+    },
+    BarChart: { props: ChartPropsSchema, description: "分类比较柱状图" },
+    DistributionChart: {
+      props: ChartPropsSchema,
+      description: "分布与占比，零总量安全",
+    },
+    ProgressList: {
+      props: ProgressPropsSchema,
+      description: "实际值与目标值进度",
+    },
     ContentList: {
       props: z.object({
         items: z.array(text),

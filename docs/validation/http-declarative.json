@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-10-20T07:43:52.728Z",
+  "verifiedAt": "2026-10-21T02:54:35.874Z",
   "checks": [
     {
       "app": "web",
@@ -18,6 +18,30 @@
       "method": "GET",
       "path": "/standards",
       "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/analytics/commerce",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/analytics/empty",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/analytics/zero",
+      "status": 200
+    },
+    {
+      "app": "web",
+      "method": "GET",
+      "path": "/analytics/missing",
+      "status": 404
     },
     {
       "app": "web",
@@ -47,6 +71,12 @@
       "app": "docs",
       "method": "GET",
       "path": "/",
+      "status": 200
+    },
+    {
+      "app": "docs",
+      "method": "GET",
+      "path": "/components/charts",
       "status": 200
     },
     {
