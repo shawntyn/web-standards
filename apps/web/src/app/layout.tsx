@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: "%s | Web Standard",
   },
   description:
-    "三个路由的简洁示例：本地 JSON 经校验和转换，通过 json-render 输出页面。",
+    "首页与两个项目详情：本地 JSON 经校验和转换，通过 json-render 输出页面。",
 };
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

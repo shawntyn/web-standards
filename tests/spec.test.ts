@@ -38,7 +38,14 @@ test("首页与两个项目通过实际 catalog、registry 和官方 Renderer �
   );
   for (const slug of ["atlas", "orbit"])
     assert.match(home, new RegExp(`href="/projects/${slug}"`));
-  assert.match(home, /href="\/analytics\/empty"/);
+  const links = [...home.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map(
+    (match) => match[1],
+  );
+  assert.deepEqual([...new Set(links)].sort(), [
+    "/",
+    "/projects/atlas",
+    "/projects/orbit",
+  ]);
   const atlas = render(projects[0].content);
   const orbit = render(projects[1].content);
   assert.match(atlas, /<h1[^>]*>Atlas 项目<\/h1>/);

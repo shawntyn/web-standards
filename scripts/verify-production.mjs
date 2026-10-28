@@ -58,7 +58,7 @@ try {
     Object.keys(manifest)
       .filter((path) => !path.startsWith("/_"))
       .sort(),
-    ["/analytics/[slug]/page", "/page", "/projects/[slug]/page"],
+    ["/page", "/projects/[slug]/page"],
   );
 
   const pages = new Map();
@@ -71,18 +71,8 @@ try {
     "/projects/orbit",
     await inspect("/projects/orbit", 200, /<caption[^>]*>阅读计划<\/caption>/),
   );
-  pages.set(
-    "/analytics/commerce",
-    await inspect("/analytics/commerce", 200, /<td[^>]*>0<\/td>/),
-  );
-  pages.set(
-    "/analytics/empty",
-    await inspect("/analytics/empty", 200, /暂无数据/),
-  );
   assert.doesNotMatch(pages.get("/projects/atlas"), /了解数据结构/);
   assert.doesNotMatch(pages.get("/projects/orbit"), /整理首页内容/);
-  assert.doesNotMatch(pages.get("/analytics/commerce"), /暂无数据/);
-  assert.doesNotMatch(pages.get("/analytics/empty"), /自然搜索/);
 
   // 检查每个页面实际生成的全部站内导航目标。
   const links = new Set();
@@ -92,29 +82,31 @@ try {
     for (const match of html.matchAll(/<a\b[^>]*href="(\/[^"#]*)"/g))
       links.add(match[1]);
     assert.doesNotMatch(html, /<form|<input|<textarea|sessionStorage/);
+    assert.doesNotMatch(html, /href="\/analytics(?:\/|")/);
   }
   assert.deepEqual([...links].sort(), [...pages.keys()].sort());
   for (const path of links) await inspect(path);
   await inspect("/projects/%61tlas", 200, /Atlas 项目/);
-  await inspect("/analytics/%63ommerce", 200, /自然搜索/);
-
-  for (const prefix of ["/projects", "/analytics"]) {
-    for (const slug of [
-      "missing",
-      "constructor",
-      "__proto__",
-      "INVALID",
-      "atlas/extra",
-    ]) {
-      await inspect(`${prefix}/${slug}`, 404, /404 · 没有找到内容/);
-    }
-    await inspect(prefix, 404);
+  for (const slug of [
+    "missing",
+    "constructor",
+    "__proto__",
+    "ATLAS",
+    "atlas/extra",
+  ]) {
+    await inspect(`/projects/${slug}`, 404, /404 · 没有找到内容/);
   }
   for (const path of [
+    "/projects",
     "/standards",
     "/components/card",
     "/projects/field",
+    "/analytics",
+    "/analytics/commerce",
+    "/analytics/empty",
     "/analytics/zero",
+    "/analytics/missing",
+    "/analytics/%63ommerce",
     "/api/projects",
     "/api/projects/atlas",
   ])
@@ -128,7 +120,7 @@ try {
       "\n",
   );
   console.log(
-    `${checks.length} 项生产 HTTP 检查通过：三个路由、SSR、全部导航目标、零值/空态、无效参数及旧入口。`,
+    `${checks.length} 项生产 HTTP 检查通过：首页、两个项目、SSR、全部导航目标、无效 slug 与已移除入口。`,
   );
 } finally {
   if (server.exitCode === null) {

@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-10-28T01:20:03.899Z",
+  "verifiedAt": "2026-10-28T02:34:02.484Z",
   "checks": [
     {
       "method": "GET",
@@ -18,16 +18,6 @@
     },
     {
       "method": "GET",
-      "path": "/analytics/commerce",
-      "status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/analytics/empty",
-      "status": 200
-    },
-    {
-      "method": "GET",
       "path": "/",
       "status": 200
     },
@@ -38,27 +28,12 @@
     },
     {
       "method": "GET",
-      "path": "/analytics/commerce",
-      "status": 200
-    },
-    {
-      "method": "GET",
       "path": "/projects/orbit",
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/analytics/empty",
-      "status": 200
-    },
-    {
-      "method": "GET",
       "path": "/projects/%61tlas",
-      "status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/analytics/%63ommerce",
       "status": 200
     },
     {
@@ -78,7 +53,7 @@
     },
     {
       "method": "GET",
-      "path": "/projects/INVALID",
+      "path": "/projects/ATLAS",
       "status": 404
     },
     {
@@ -89,36 +64,6 @@
     {
       "method": "GET",
       "path": "/projects",
-      "status": 404
-    },
-    {
-      "method": "GET",
-      "path": "/analytics/missing",
-      "status": 404
-    },
-    {
-      "method": "GET",
-      "path": "/analytics/constructor",
-      "status": 404
-    },
-    {
-      "method": "GET",
-      "path": "/analytics/__proto__",
-      "status": 404
-    },
-    {
-      "method": "GET",
-      "path": "/analytics/INVALID",
-      "status": 404
-    },
-    {
-      "method": "GET",
-      "path": "/analytics/atlas/extra",
-      "status": 404
-    },
-    {
-      "method": "GET",
-      "path": "/analytics",
       "status": 404
     },
     {
@@ -138,7 +83,32 @@
     },
     {
       "method": "GET",
+      "path": "/analytics",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/commerce",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/empty",
+      "status": 404
+    },
+    {
+      "method": "GET",
       "path": "/analytics/zero",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/missing",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/%63ommerce",
       "status": 404
     },
     {

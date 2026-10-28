@@ -1,31 +1,21 @@
 {
-  "verifiedAt": "2026-10-27T12:37:27.959Z",
+  "verifiedAt": "2026-10-28T02:34:28.154Z",
   "browser": "154.0.8037.57",
   "viewports": ["1280x900", "390x844"],
   "checks": [
     {
-      "action": "direct visit and reload",
+      "action": "direct visit, reload and exactly three navigation targets",
       "path": "/",
       "status": 200
     },
     {
-      "action": "direct visit and reload",
+      "action": "direct visit, reload and exactly three navigation targets",
       "path": "/projects/atlas",
       "status": 200
     },
     {
-      "action": "direct visit and reload",
+      "action": "direct visit, reload and exactly three navigation targets",
       "path": "/projects/orbit",
-      "status": 200
-    },
-    {
-      "action": "direct visit and reload",
-      "path": "/analytics/commerce",
-      "status": 200
-    },
-    {
-      "action": "direct visit and reload",
-      "path": "/analytics/empty",
       "status": 200
     },
     {
@@ -44,13 +34,8 @@
     },
     {
       "action": "client navigation",
-      "path": "/analytics/commerce",
-      "title": "渠道订单"
-    },
-    {
-      "action": "client navigation",
-      "path": "/analytics/empty",
-      "title": "渠道订单"
+      "path": "/projects/orbit",
+      "title": "Orbit 项目"
     },
     {
       "action": "client navigation",
@@ -83,50 +68,68 @@
       "viewport": 390
     },
     {
-      "action": "mobile no horizontal overflow",
-      "path": "/analytics/commerce",
-      "content": 390,
-      "viewport": 390
+      "action": "client navigation",
+      "path": "/projects/atlas",
+      "title": "Atlas 项目"
     },
     {
-      "action": "mobile no horizontal overflow",
-      "path": "/analytics/empty",
-      "content": 390,
-      "viewport": 390
-    },
-    {
-      "action": "invalid direct visit and reload",
+      "action": "invalid or removed URL direct visit and reload",
       "path": "/projects/missing",
       "status": 404
     },
     {
-      "action": "invalid direct visit and reload",
-      "path": "/analytics/missing",
+      "action": "invalid or removed URL direct visit and reload",
+      "path": "/projects/ATLAS",
       "status": 404
     },
     {
-      "action": "invalid direct visit and reload",
+      "action": "invalid or removed URL direct visit and reload",
       "path": "/projects/__proto__",
       "status": 404
     },
     {
-      "action": "invalid direct visit and reload",
-      "path": "/analytics/constructor",
+      "action": "invalid or removed URL direct visit and reload",
+      "path": "/projects/constructor",
       "status": 404
     },
     {
-      "action": "invalid direct visit and reload",
+      "action": "invalid or removed URL direct visit and reload",
+      "path": "/projects/atlas/extra",
+      "status": 404
+    },
+    {
+      "action": "invalid or removed URL direct visit and reload",
       "path": "/projects",
       "status": 404
     },
     {
-      "action": "invalid direct visit and reload",
+      "action": "invalid or removed URL direct visit and reload",
       "path": "/analytics",
       "status": 404
     },
     {
-      "action": "invalid direct visit and reload",
-      "path": "/standards",
+      "action": "invalid or removed URL direct visit and reload",
+      "path": "/analytics/commerce",
+      "status": 404
+    },
+    {
+      "action": "invalid or removed URL direct visit and reload",
+      "path": "/analytics/empty",
+      "status": 404
+    },
+    {
+      "action": "invalid or removed URL direct visit and reload",
+      "path": "/analytics/zero",
+      "status": 404
+    },
+    {
+      "action": "invalid or removed URL direct visit and reload",
+      "path": "/analytics/missing",
+      "status": 404
+    },
+    {
+      "action": "invalid or removed URL direct visit and reload",
+      "path": "/analytics/%63ommerce",
       "status": 404
     }
   ],

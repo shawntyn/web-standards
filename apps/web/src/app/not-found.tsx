@@ -18,7 +18,7 @@ export default function NotFound() {
           },
           "not-found-text": {
             type: "Text",
-            props: { text: "请通过首页选择已有的项目或统计数据。" },
+            props: { text: "请通过首页选择 Atlas 或 Orbit 项目。" },
             children: [],
           },
         },

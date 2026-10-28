@@ -15,8 +15,8 @@ export function pageSpec(content: Spec): Spec {
           brand: "Web Standard",
           links: [
             { label: "首页", href: "/" },
-            { label: "项目详情", href: "/projects/atlas" },
-            { label: "渠道统计", href: "/analytics/commerce" },
+            { label: "Atlas", href: "/projects/atlas" },
+            { label: "Orbit", href: "/projects/orbit" },
           ],
         },
         [content.root],
