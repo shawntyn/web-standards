@@ -1,186 +1,57 @@
 {
-  "content": {
-    "id": "analytics-root",
-    "type": "Stack",
-    "props": {
-      "gap": "lg"
-    },
-    "children": [
-      {
-        "id": "analytics-title",
-        "type": "h1",
-        "props": {
-          "text": "从查询结果，到可读的数据界面。",
-          "eyebrow": "DATA LAB / 数据渲染实验室"
-        }
-      },
-      {
-        "id": "analytics-description",
-        "type": "p",
-        "props": {
-          "text": "静态 JSON 模拟数据库聚合查询结果；展示配置声明组件树和绑定，mapper 只转换字段。切换普通、空数据与全零场景，对照原始 rows 和最终 Spec。"
-        }
-      },
-      {
-        "id": "analytics-nav",
-        "type": "Grid",
-        "props": {
-          "columns": 3
-        },
-        "children": [
-          {
-            "id": "nav-commerce",
-            "type": "LinkButton",
-            "props": {
-              "label": "业务查询结果",
-              "href": "/analytics/commerce",
-              "variant": "secondary"
-            }
-          },
-          {
-            "id": "nav-empty",
-            "type": "LinkButton",
-            "props": {
-              "label": "空查询结果",
-              "href": "/analytics/empty",
-              "variant": "secondary"
-            }
-          },
-          {
-            "id": "nav-zero",
-            "type": "LinkButton",
-            "props": {
-              "label": "全零结果",
-              "href": "/analytics/zero",
-              "variant": "secondary"
-            }
-          }
-        ]
-      },
-      {
-        "id": "charts",
-        "type": "Grid",
-        "props": {
-          "columns": 2
-        },
-        "children": [
-          {
-            "id": "daily-chart",
-            "type": "LineChart",
-            "props": {
-              "title": "每日订单",
-              "description": "按日期升序返回，保留无订单的零值日期。",
-              "unit": "单",
-              "emptyText": "此查询没有返回记录",
-              "points": []
-            }
-          },
-          {
-            "id": "channel-chart",
-            "type": "BarChart",
-            "props": {
-              "title": "来源渠道",
-              "description": "按查询结果顺序比较，不在组件内排序。",
-              "unit": "单",
-              "emptyText": "此查询没有返回记录",
-              "points": []
-            }
-          },
-          {
-            "id": "status-chart",
-            "type": "DistributionChart",
-            "props": {
-              "title": "订单状态分布",
-              "description": "占比根据当前查询结果总和计算。",
-              "unit": "单",
-              "emptyText": "此查询没有返回记录",
-              "points": []
-            }
-          },
-          {
-            "id": "team-progress",
-            "type": "ProgressList",
-            "props": {
-              "title": "团队目标完成度",
-              "emptyText": "暂无团队目标",
-              "items": []
-            }
-          }
-        ]
-      },
-      {
-        "id": "query-table",
-        "type": "ContentTable",
-        "props": {
-          "caption": "渠道查询明细",
-          "columns": ["渠道", "订单数"],
-          "rows": []
-        }
-      },
-      {
-        "id": "pipeline-note",
-        "type": "Callout",
-        "props": {
-          "title": "这不是实时数据库",
-          "text": "repository 从已校验的 JSON fixtures 返回查询结果，等价于驱动返回的 rows。本示例没有连接数据库，不执行 SQL，也不把 UI Spec 伪装为查询结果。"
-        }
-      },
-      {
-        "id": "query-inspector",
-        "type": "Code",
-        "props": {
-          "label": "01 / MOCK QUERY RESULT",
-          "code": "由查询结果绑定填充"
-        }
-      },
-      {
-        "id": "config-inspector",
-        "type": "Code",
-        "props": {
-          "label": "02 / DISPLAY CONFIG（无调试节点）",
-          "code": "由展示配置绑定填充"
-        }
-      },
-      {
-        "id": "spec-inspector",
-        "type": "Code",
-        "props": {
-          "label": "03 / GENERATED SPEC（无调试节点）",
-          "code": "由生成的 Spec 绑定填充"
-        }
-      }
-    ]
+  "id": "analytics",
+  "type": "Stack",
+  "props": {
+    "gap": "md"
   },
-  "bindings": [
+  "children": [
     {
-      "nodeId": "daily-chart",
-      "kind": "daily",
-      "query": "daily"
+      "id": "analytics-title",
+      "type": "h1",
+      "props": {
+        "text": "渠道订单"
+      }
     },
     {
-      "nodeId": "channel-chart",
-      "kind": "channels",
-      "query": "channels"
+      "id": "analytics-intro",
+      "type": "p",
+      "props": {
+        "text": "每行一个来源渠道，订单数保留零值。"
+      }
     },
     {
-      "nodeId": "status-chart",
-      "kind": "statuses",
-      "query": "statuses"
+      "id": "channels-table",
+      "type": "ContentTable",
+      "props": {
+        "caption": "渠道订单明细",
+        "columns": ["来源渠道", "订单数"],
+        "rows": []
+      }
     },
     {
-      "nodeId": "team-progress",
-      "kind": "goals",
-      "query": "goals"
-    },
-    {
-      "nodeId": "query-table",
-      "kind": "table",
-      "query": "channels"
+      "id": "analytics-links",
+      "type": "Grid",
+      "props": {
+        "columns": 2
+      },
+      "children": [
+        {
+          "id": "analytics-commerce",
+          "type": "LinkButton",
+          "props": {
+            "label": "查看订单数据",
+            "href": "/analytics/commerce"
+          }
+        },
+        {
+          "id": "analytics-empty",
+          "type": "LinkButton",
+          "props": {
+            "label": "查看空数据",
+            "href": "/analytics/empty"
+          }
+        }
+      ]
     }
-  ],
-  "inspectors": {
-    "query": "query-inspector",
-    "config": "config-inspector",
-    "spec": "spec-inspector"
-  }
+  ]
 }

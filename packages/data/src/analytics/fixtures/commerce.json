@@ -1,81 +1,16 @@
 {
-  "daily": [
-    {
-      "day": "2026-10-14",
-      "order_count": 32
-    },
-    {
-      "day": "2026-10-15",
-      "order_count": 48
-    },
-    {
-      "day": "2026-10-16",
-      "order_count": 0
-    },
-    {
-      "day": "2026-10-17",
-      "order_count": 65
-    },
-    {
-      "day": "2026-10-18",
-      "order_count": 54
-    },
-    {
-      "day": "2026-10-19",
-      "order_count": 82
-    },
-    {
-      "day": "2026-10-20",
-      "order_count": 96
-    }
-  ],
   "channels": [
     {
       "channel_name": "自然搜索",
-      "order_count": 172
+      "order_count": 8
     },
     {
       "channel_name": "直接访问",
-      "order_count": 121
-    },
-    {
-      "channel_name": "合作伙伴",
-      "order_count": 84
+      "order_count": 5
     },
     {
       "channel_name": "邮件",
       "order_count": 0
-    }
-  ],
-  "statuses": [
-    {
-      "status_name": "已完成",
-      "order_count": 260
-    },
-    {
-      "status_name": "处理中",
-      "order_count": 92
-    },
-    {
-      "status_name": "已取消",
-      "order_count": 25
-    }
-  ],
-  "goals": [
-    {
-      "team_name": "产品团队",
-      "completed_count": 36,
-      "target_count": 50
-    },
-    {
-      "team_name": "增长团队",
-      "completed_count": 24,
-      "target_count": 40
-    },
-    {
-      "team_name": "支持团队",
-      "completed_count": 0,
-      "target_count": 20
     }
   ]
 }

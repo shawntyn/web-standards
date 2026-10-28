@@ -1,111 +1,46 @@
 {
   "slug": "orbit",
-  "name": "Orbit 内容中枢",
-  "category": "内容平台",
-  "description": "一篇关于内容优先的编辑手记：段落、引用、代码和开放问题。",
-  "status": "构建中",
-  "progress": 62,
-  "members": 12,
-  "tasks": 640,
-  "features": ["长文编辑", "引用与摘录", "内容导出"],
+  "name": "Orbit 项目",
+  "description": "用一个小表格展示阅读计划。",
   "content": {
-    "id": "orbit-page",
+    "id": "orbit",
     "type": "Stack",
     "props": {
       "gap": "md"
     },
     "children": [
       {
-        "id": "back",
-        "type": "LinkButton",
-        "props": {
-          "label": "返回所有项目",
-          "href": "/",
-          "variant": "secondary"
-        }
-      },
-      {
-        "id": "page-title",
+        "id": "orbit-title",
         "type": "h1",
         "props": {
-          "text": "Orbit 内容中枢"
+          "text": "Orbit 项目"
         }
       },
       {
-        "id": "page-description",
+        "id": "orbit-intro",
         "type": "p",
         "props": {
-          "text": "一篇关于内容优先的编辑手记：段落、引用、代码和开放问题。",
-          "tone": "muted"
+          "text": "一份两天就能读完的学习计划。"
         }
       },
       {
-        "id": "opening",
-        "type": "Quote",
+        "id": "orbit-plan",
+        "type": "ContentTable",
         "props": {
-          "text": "把想法写清楚，往往比把它装进更多功能更有价值。",
-          "attribution": "Orbit 编辑手记"
-        }
-      },
-      {
-        "id": "intro",
-        "type": "p",
-        "props": {
-          "text": "我们把 Orbit 的第一版从“内容管理平台”缩成了一本可以持续编辑的笔记。先保证内容能被顺畅阅读，再决定要不要增加复杂的组织方式。"
-        }
-      },
-      {
-        "id": "reading-first",
-        "type": "h2",
-        "props": {
-          "text": "先考虑读者如何阅读"
-        }
-      },
-      {
-        "id": "reading",
-        "type": "p",
-        "props": {
-          "text": "正文按作者写作的顺序展开。短段落交代上下文，标题标记话题转换，引用保留不同的声音。没有必要为了填满卡片而把每段内容切成相同的大小。"
-        }
-      },
-      {
-        "id": "format",
-        "type": "h2",
-        "props": {
-          "text": "一个可以带走的格式"
-        }
-      },
-      {
-        "id": "snippet",
-        "type": "Code",
-        "props": {
-          "code": "{\n  \"id\": \"reading\",\n  \"type\": \"p\",\n  \"props\": { \"text\": \"内容与结构由 JSON 声明。\" }\n}",
-          "label": "json"
-        }
-      },
-      {
-        "id": "format-note",
-        "type": "p",
-        "props": {
-          "text": "这份 JSON 显式声明标题、段落、引用和布局。调整顺序只需要移动节点，不需要让转换函数猜测内容应该放在哪里。"
-        }
-      },
-      {
-        "id": "next",
-        "type": "h2",
-        "props": {
-          "text": "下一篇想讨论的事"
-        }
-      },
-      {
-        "id": "questions",
-        "type": "ContentList",
-        "props": {
-          "items": [
-            "如何区分长期有效的笔记与一次性的公告？",
-            "谁可以修订一段内容，修改理由放在哪里？",
-            "导出之后，读者还能否理解原来的上下文？"
+          "caption": "阅读计划",
+          "columns": ["时间", "内容"],
+          "rows": [
+            ["周一", "了解数据结构"],
+            ["周二", "跟读渲染流程"]
           ]
+        }
+      },
+      {
+        "id": "orbit-next",
+        "type": "LinkButton",
+        "props": {
+          "label": "返回 Atlas 项目",
+          "href": "/projects/atlas"
         }
       }
     ]

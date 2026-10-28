@@ -1,35 +1,27 @@
 import type { Spec } from "@json-render/core";
-import { node, type Node } from "./spec-node";
+import { node } from "./spec-node";
 import { validateSpec } from "./validate-spec";
 
-/** Application navigation only; it does not choose the document's content. */
-export function shell(
-  elements: Record<string, Node>,
-  children: string[],
-): Spec {
+// 应用外壳独立于正文转换器，三个页面共用同一导航。
+export function pageSpec(content: Spec): Spec {
+  if (content.elements["site-frame"])
+    throw new Error("正文不能使用保留 ID：site-frame");
   return validateSpec({
-    root: "frame",
+    root: "site-frame",
     elements: {
-      frame: node(
+      "site-frame": node(
         "Frame",
         {
-          brand: "Web / 工程规范",
-          subtitle: "FULL-STACK REFERENCE",
+          brand: "Web Standard",
           links: [
-            { label: "项目示例", href: "/" },
-            { label: "架构规范", href: "/standards" },
-            { label: "数据实验室", href: "/analytics/commerce" },
-            { label: "项目工作台", href: "/projects" },
-            {
-              label: "组件文档 ↗",
-              href: process.env.DOCS_ORIGIN ?? "http://localhost:3001",
-            },
+            { label: "首页", href: "/" },
+            { label: "项目详情", href: "/projects/atlas" },
+            { label: "渠道统计", href: "/analytics/commerce" },
           ],
         },
-        ["page"],
+        [content.root],
       ),
-      page: node("Stack", { gap: "lg" }, children),
-      ...elements,
+      ...content.elements,
     },
   });
 }

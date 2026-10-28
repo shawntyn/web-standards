@@ -1,150 +1,138 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { once } from "node:events";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-// Run after `pnpm build`. Starts real Next production servers for this check only.
+// 先 pnpm build；仅在检查期间启动本地生产服务。
 const root = process.cwd();
+const origin = "http://127.0.0.1:3200";
 const checks = [];
-const servers = [];
-const apps = [
-  { name: "web", port: 3200 },
-  { name: "docs", port: 3201 },
-];
-async function inspect(app, path, status = 200, pattern) {
-  const response = await fetch(`http://127.0.0.1:${app.port}${path}`);
+const server = spawn(
+  process.execPath,
+  [
+    resolve(root, "apps/web/node_modules/next/dist/bin/next"),
+    "start",
+    "--hostname",
+    "127.0.0.1",
+    "--port",
+    "3200",
+  ],
+  { cwd: resolve(root, "apps/web"), stdio: ["ignore", "ignore", "inherit"] },
+);
+
+async function inspect(path, status = 200, pattern, method = "GET") {
+  const response = await fetch(`${origin}${path}`, { method });
   const html = await response.text();
-  assert.equal(response.status, status, `${app.name} ${path}`);
-  if (pattern) assert.match(html, pattern);
-  if (status === 200) assert.doesNotMatch(html, /NEXT_HTTP_ERROR_FALLBACK;500/);
-  checks.push({ app: app.name, method: "GET", path, status });
+  assert.equal(response.status, status, `${method} ${path}`);
+  if (pattern) assert.match(html, pattern, path);
+  assert.doesNotMatch(html, /NEXT_HTTP_ERROR_FALLBACK;500/);
+  checks.push({ method, path, status });
   return html;
 }
+
 try {
-  for (const app of apps) {
-    const child = spawn(
-      process.execPath,
-      [
-        resolve(root, `apps/${app.name}/node_modules/next/dist/bin/next`),
-        "start",
-        "--hostname",
-        "127.0.0.1",
-        "--port",
-        String(app.port),
-      ],
-      {
-        cwd: resolve(root, `apps/${app.name}`),
-        stdio: ["ignore", "ignore", "inherit"],
-      },
-    );
-    servers.push(child);
-    let ready = false;
-    for (let retry = 0; retry < 100; retry++) {
-      if (child.exitCode !== null)
-        throw new Error(`${app.name} server exited ${child.exitCode}`);
-      try {
-        const response = await fetch(`http://127.0.0.1:${app.port}`);
-        if (response.ok) {
-          ready = true;
-          break;
-        }
-      } catch {
-        /* Starting. */
+  let ready = false;
+  for (let retry = 0; retry < 100; retry++) {
+    if (server.exitCode !== null)
+      throw new Error(`生产服务退出：${server.exitCode}`);
+    try {
+      if ((await fetch(origin)).ok) {
+        ready = true;
+        break;
       }
-      await new Promise((resolve) => setTimeout(resolve, 300));
+    } catch {
+      /* 服务启动中。 */
     }
-    assert.ok(ready, `${app.name} production server ready`);
+    await new Promise((resolve) => setTimeout(resolve, 300));
   }
-  const [web, docs] = apps;
-  await inspect(web, "/", 200, /从数据走到页面/);
-  await inspect(web, "/projects", 200, /项目工作台/);
-  await inspect(web, "/standards", 200, /清晰边界/);
-  for (const slug of ["commerce", "empty", "zero"]) {
-    const html = await inspect(web, `/analytics/${slug}`, 200, /查询结果/);
-    assert.match(html, /<h1/);
-    if (slug !== "empty") assert.match(html, /<svg/);
-  }
-  await inspect(web, "/analytics/missing", 404);
-  const atlas = await inspect(web, "/projects/atlas", 200, /试算团队容量/);
-  const orbit = await inspect(
-    web,
-    "/projects/orbit",
-    200,
-    /一个可以带走的格式/,
-  );
-  const field = await inspect(web, "/projects/field", 200, /首周激活漏斗/);
-  for (const html of [atlas, orbit, field]) assert.match(html, /<h1/);
-  assert.match(atlas, /capacity-input/);
-  assert.match(orbit, /<blockquote>/);
-  assert.match(field, /<table/);
-  for (const html of [orbit, field])
-    assert.doesNotMatch(html, /capacity-input/);
-  await inspect(web, "/projects/missing", 404);
-  await inspect(docs, "/", 200, /内容驱动渲染/);
-  for (const slug of [
-    "charts",
-    "content",
-    "primitives",
-    "card",
-    "button",
-    "metric",
-    "slot",
-    "table",
-    "form",
-    "workflow",
-  ]) {
-    const html = await inspect(docs, `/components/${slug}`);
-    assert.doesNotMatch(html, /"digest":"[0-9]+"/);
-  }
-  await inspect(docs, "/components/missing", 404);
-  const project = JSON.parse(
+  assert.ok(ready, "生产服务启动");
+
+  const manifest = JSON.parse(
     await readFile(
-      resolve(root, "packages/data/src/projects/atlas.json"),
+      resolve(root, "apps/web/.next/server/app-paths-manifest.json"),
       "utf8",
     ),
   );
-  for (const app of apps) {
-    for (const [method, path, body, status] of [
-      ["POST", "/api/projects", { project }, 201],
-      ["PATCH", "/api/projects/atlas", { project }, 200],
-      [
-        "POST",
-        "/api/projects",
-        {
-          project: {
-            ...project,
-            content: { id: "bad", type: "unknown", props: {} },
-          },
-        },
-        422,
-      ],
-      ["POST", "/api/projects", { project, simulateError: true }, 503],
-      ["PATCH", "/api/projects/other", { project }, 409],
-    ]) {
-      const response = await fetch(`http://127.0.0.1:${app.port}${path}`, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      assert.equal(response.status, status);
-      const json = await response.json();
-      if (status < 300) {
-        assert.equal(json.meta.serverStored, false);
-        assert.deepEqual(json.data.content, project.content);
-      }
-      checks.push({ app: app.name, method, path, status });
-    }
+  assert.deepEqual(
+    Object.keys(manifest)
+      .filter((path) => !path.startsWith("/_"))
+      .sort(),
+    ["/analytics/[slug]/page", "/page", "/projects/[slug]/page"],
+  );
+
+  const pages = new Map();
+  pages.set("/", await inspect("/", 200, /<h1[^>]*>从数据到页面<\/h1>/));
+  pages.set(
+    "/projects/atlas",
+    await inspect("/projects/atlas", 200, /<li>整理首页内容<\/li>/),
+  );
+  pages.set(
+    "/projects/orbit",
+    await inspect("/projects/orbit", 200, /<caption[^>]*>阅读计划<\/caption>/),
+  );
+  pages.set(
+    "/analytics/commerce",
+    await inspect("/analytics/commerce", 200, /<td[^>]*>0<\/td>/),
+  );
+  pages.set(
+    "/analytics/empty",
+    await inspect("/analytics/empty", 200, /暂无数据/),
+  );
+  assert.doesNotMatch(pages.get("/projects/atlas"), /了解数据结构/);
+  assert.doesNotMatch(pages.get("/projects/orbit"), /整理首页内容/);
+  assert.doesNotMatch(pages.get("/analytics/commerce"), /暂无数据/);
+  assert.doesNotMatch(pages.get("/analytics/empty"), /自然搜索/);
+
+  // 检查每个页面实际生成的全部站内导航目标。
+  const links = new Set();
+  for (const html of pages.values()) {
+    assert.match(html, /<main/);
+    assert.match(html, /<nav[^>]*aria-label="主导航"/);
+    for (const match of html.matchAll(/<a\b[^>]*href="(\/[^"#]*)"/g))
+      links.add(match[1]);
+    assert.doesNotMatch(html, /<form|<input|<textarea|sessionStorage/);
   }
-  const data = JSON.parse(await inspect(web, "/api/projects"));
-  assert.equal((data.data ?? data).length, 3);
-  const report = { verifiedAt: new Date().toISOString(), checks };
+  assert.deepEqual([...links].sort(), [...pages.keys()].sort());
+  for (const path of links) await inspect(path);
+  await inspect("/projects/%61tlas", 200, /Atlas 项目/);
+  await inspect("/analytics/%63ommerce", 200, /自然搜索/);
+
+  for (const prefix of ["/projects", "/analytics"]) {
+    for (const slug of [
+      "missing",
+      "constructor",
+      "__proto__",
+      "INVALID",
+      "atlas/extra",
+    ]) {
+      await inspect(`${prefix}/${slug}`, 404, /404 · 没有找到内容/);
+    }
+    await inspect(prefix, 404);
+  }
+  for (const path of [
+    "/standards",
+    "/components/card",
+    "/projects/field",
+    "/analytics/zero",
+    "/api/projects",
+    "/api/projects/atlas",
+  ])
+    await inspect(path, 404);
+  await inspect("/api/projects", 404, undefined, "POST");
+  await inspect("/api/projects/atlas", 404, undefined, "PATCH");
+
   await writeFile(
-    resolve(root, "docs/validation/http-declarative.json"),
-    JSON.stringify(report, null, 2) + "\n",
+    resolve(root, "docs/validation/http-simplified.json"),
+    JSON.stringify({ verifiedAt: new Date().toISOString(), checks }, null, 2) +
+      "\n",
   );
   console.log(
-    `${checks.length} production HTTP checks passed. SSR declared tree differences and API content preservation verified.`,
+    `${checks.length} 项生产 HTTP 检查通过：三个路由、SSR、全部导航目标、零值/空态、无效参数及旧入口。`,
   );
 } finally {
-  for (const child of servers) child.kill("SIGTERM");
+  if (server.exitCode === null) {
+    server.kill("SIGTERM");
+    await once(server, "exit");
+  }
 }

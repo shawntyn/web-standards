@@ -1,154 +1,55 @@
-# Web Standard
+# Web Standard：从数据到页面
 
-可运行的全栈 Web 规范参考实现。不是完整业务系统：数据持久化、身份认证和部署基础设施明确不在本示例范围内。
+一个适合顺着源码阅读的小例子。保留 pnpm workspace、Next.js App Router、Tailwind CSS 与官方 json-render，使用只读本地 JSON。
 
-## 开发规范与可复用 Skill
+只有三个页面路由（404 是错误边界）：
 
-- [AGENTS.md](AGENTS.md)：当前仓库必须遵守的边界、实际目录与验证命令。
-- [build-json-render-web](.agents/skills/build-json-render-web/SKILL.md)：可复用的工程 Skill，附声明式映射正反例、行为验收和 AGENTS 模板。
+| 路由文件                                     | 可访问示例                                | 展示内容                     |
+| -------------------------------------------- | ----------------------------------------- | ---------------------------- |
+| `apps/web/src/app/page.tsx`                  | `/`                                       | 两个项目入口和统计入口       |
+| `apps/web/src/app/projects/[slug]/page.tsx`  | `/projects/atlas`、`/projects/orbit`      | 按 slug 读取不同 JSON 内容树 |
+| `apps/web/src/app/analytics/[slug]/page.tsx` | `/analytics/commerce`、`/analytics/empty` | 按 slug 读取订单记录或空集合 |
 
-复用时复制整个 `build-json-render-web` 文件夹（包含 references / assets）到支持 Agent Skills 的工具所识别的技能目录；本仓库放在 `.agents/skills/`。在支持显式调用的工具中可使用 `$build-json-render-web`，或要求代理读取其 SKILL.md。不同工具的发现/安装规则以该工具文档为准；这里没有替你安装全局技能。
+这里的“三个页面”指三个路由文件。两个动态路由各有多个参数实例；`missing`、大小写错误等未知参数返回真实 HTTP 404。
 
-## 在线预览
+## 运行
 
-- 主站：https://web-standards-next-demo.shawntyn.chatgpt.site
-- 组件文档：https://web-standards-ui-docs.shawntyn.chatgpt.site
-
-两个预览站均为 owner-private，仅项目所有者登录 ChatGPT 后可访问。公开的是本仓库源码，不代表预览站已开放匿名访问。
-
-## 技术与版本
-
-2026-10-20 查询 npm registry 的稳定版本：Next.js 16.4.2、React 19.3.1、Tailwind CSS 4.3.3、json-render 0.21.1、pnpm 12.14.0。实际依赖通过 `pnpm-lock.yaml` 固定，禁止在部署时隐式升级。
-
-TypeScript 固定为 6.0.3：当前 typescript-eslint 8.71.2 明确不支持 TS 7 API，因此采用兼容编译器，而不是跳过 lint 或类型检查。见 [TypeScript 官方说明](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0)。
-
-要求 Node.js 24+。推荐用 Corepack 或 pnpm 官方安装方式准备项目指定的 pnpm 版本。
+要求 Node.js 24+，pnpm 12.14.0（根 `package.json` 指定版本）。
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev
-# 主站 http://localhost:3000
-# 组件文档 http://localhost:3001
+# 打开 http://localhost:3000
+```
+
+不需要数据库、环境变量或第二个服务。已移除模拟编辑工作台、会话存储、mock 写入 API、架构规范页和独立组件文档站。原有线上预览未随本次源码修改更新。
+
+## 按这个顺序读
+
+先看 [中文阅读指南](docs/reading-guide.md)，它用实际文件解释两条数据链路。最短的一条是：
+
+```text
+/projects/atlas
+  → apps/web/src/app/projects/[slug]/page.tsx：await params，取出 slug
+  → packages/data/src/project-repository.ts：选择 atlas.json 并校验
+  → packages/render/src/content-to-spec.ts：嵌套节点变为 root / elements
+  → packages/data/src/page-shell.ts：添加共同导航并校验 Spec
+  → packages/render/src/spec-view.tsx：官方 Renderer
+  → packages/render/src/registry.tsx：Heading 对应 UI.Heading
+  → packages/ui/src/components/heading.tsx：输出真正的 <h1>
+```
+
+四个包各负责一件事：`domain` 定义数据形状，`data` 读取和组合数据，`render` 对接 json-render，`ui` 实现普通 React 组件。跨包通过 workspace exports 引用；没有添加新框架。
+
+## 验证
+
+```sh
+pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
-pnpm test:http  # 启动两个生产服务，检查 SSR / 404 / mock API，然后退出
-pnpm --filter @repo/web start
-pnpm --filter @repo/docs start
+pnpm test:http
 ```
 
-## 为什么是 apps/web + apps/docs，而不是 app/(web) + app/(docs)
-
-两站有独立的导航、部署、构建产物和生命周期，采用两个 Next.js workspace。Route Group `(group)` 只是在一个应用中组织布局，不创建独立应用或部署边界。若未来两站必须共用单一部署和路由，再使用 route group；它不是 monorepo 的替代品。
-
-```text
-apps/
-  web/src/app/
-    page.tsx
-    standards/page.tsx
-    projects/[slug]/page.tsx
-    api/projects/route.ts
-  docs/src/app/
-    page.tsx
-    components/[slug]/page.tsx
-packages/
-  ui/src/components/ 每个基础组件一个文件，无外部 UI 库
-  ui/src/index.ts    仅 barrel exports
-  ui/src/styles.css  Tailwind theme tokens + 全局 base
-  render/src/       catalog、typed registry、官方 Renderer、特殊组件
-  domain/src/       内容 / 项目 schema、草稿转换、mock HTTP 校验
-  data/src/projects/atlas.json  产品说明
-  data/src/projects/orbit.json  编辑手记
-  data/src/projects/field.json  分析报告
-  data/src/pages/   页面组合，index.ts 仅导出
- tests/             数据契约、引用完整性、真实 SSR 检查
-```
-
-依赖方向：apps → data / render；data → render/catalog 与 render/projects（纯转换器）；render → domain / ui；ui 不依赖应用、业务数据或 json-render。所有 workspace 使用 `workspace:*` 和显式 exports，不通过相对路径跨包导入。测试可以直接定位被测源码。
-
-## 完整渲染路径
-
-1. Next.js 异步 Server Page 用 `await connection()` 明确请求时动态渲染。
-2. 动态路由 `params` 是 Promise，必须 `await params`。
-3. 读取 `projects/` 下逐项目独立的 JSON 文件，使用 Zod 校验业务结构；未知 slug 调用 `notFound()`。
-4. `projectContentSpec()` 递归遍历显式 content 节点树，用 map 将 children / slots 转为 ID 引用并展平为 elements。每个源节点对应一个目标节点，不生成标题、布局或额外内容。首页摘要另由 `projectCardsToElements()` 转换。
-5. `catalog.validate(spec)` 校验组件和 props，额外检查所有节点引用存在。
-6. 将可序列化 Spec 传给 `SpecView`。它直接使用官方 `@json-render/react` 的 `JSONUIProvider`、`Renderer` 和 `defineRegistry`。
-7. Next.js 对 Client Component 首次请求仍预渲染 HTML，然后 hydration；`'use client'` 不等于 CSR。本项目不使用 `ssr:false` 或空壳替代 SSR，首屏读取不依赖客户端 fetch；工作台写操作通过真实 HTTP 提交。
-
-页面的组件树、内容、导航与文档组件预览均通过 Spec 进入 Renderer。文档正文由本地 MDX 编译。Next.js 的根文档 `<html>/<body>` 是框架必要边界，不是用 JSON 描述文档本身。
-
-## 声明式 JSON，而非隐式页面模板
-
-每个项目独立 JSON 的 content 是一棵显式根节点树：`{ id, type, props, children?, slots? }`。布局也是数据，Stack / Grid / Card 不由 mapper 擅自选择。三个示例共享类型安全协议，但声明不同组件树，而不是同一模板更换数字。
-
-`h1` 到 `h6` 映射到 Heading 的对应 level，`p` 映射到 Text，其他白名单组件保持名称和 props。`projectContentSpec()` 只把嵌套树转换为 json-render 的 root / elements / ID 引用，节点一一对应，顺序保持。源数据没有标题、描述、工具或 slot 节点，就不会生成。项目 name / description 供列表和 SEO 使用，不自动插入详情内容。
-
-例如 `{"id":"title","type":"h1","props":{"text":"产品概览"}}` 只产生一个 Heading 节点，不会增加 Document 或其他容器。需要网格就显式声明 Grid，需要 Card 的 footer 交互工具就显式在 slots.footer 中声明 CapacityPlanner。组件自身的 Tailwind 默认样式仍有效，JSON 不需要包含 CSS，也不能包含可执行代码。
-
-`ProjectSpecViewRender` 与 SSR 页面共用转换器。详情页面的应用级 main 边界与数据 Spec 分离；项目转换器不再添加 Frame、导航、标题或强制文章排版。没有约 72ch 的 Document 包装或后代标题覆盖。
-
-工作台可编辑同一棵正文 JSON 树，保留内容并共享客户端与服务端校验；成功后会话详情使用相同渲染器更新。它是协议编辑器，不是富文本编辑器。会话存储 key 升为 v3，旧结构不混入新数据。
-
-职责按文件拆分：data 的仓储 / mapper / page / shell / 校验分开；domain 的内容契约 / 项目契约 / 草稿 / 集合更新 / HTTP 服务分开；workbench 的状态 hook / session store / 字段定义 / 展示组件分开。组件文档以 apps/docs 的本地 MDX 为唯一来源。
-
-## Catalog / Registry / Spec
-
-- `catalog.ts`：Zod props 契约，以及允许的 default/header/footer slot。
-- `registry.tsx`：受信任组件实现的注册表；没有动态 import 任意路径或执行 JSON 内代码。
-- `Spec`：`{ root, elements }`，节点 `type` 指向组件名，children/slots 存节点 ID。
-- UI 包：语义化 React 组件，只接普通 props 和 ReactNode；不了解 json-render。
-
-## 特殊组件 slot
-
-`Card` 在 Catalog 声明 `slots: ['default','header','footer']`。Registry 通过 `slots?.header` 和 `slots?.footer` 显式传给基础 Card。组件文档的 Card 示例 footer 指向 `CapacityPlanner` 节点，它是代码中预注册的可交互组件，JSON 只提供初始数值。
-
-此例展示允许业务扩展而不污染通用 UI 的方法。不要把函数、JSX、组件模块路径或原始 HTML 塞进 JSON；未来引入新的特殊组件时，同时更新 catalog、registry 和测试。
-
-## Tailwind CSS
-
-使用 v4 CSS-first 配置：`@import "tailwindcss"`、`@theme`、`@source`；PostCSS 使用 `@tailwindcss/postcss`。共享设计 tokens 与必要全局 reset 在 UI 包的 styles.css。组件的布局、颜色、响应式、hover、disabled、aria-invalid 状态全部用 JSX 中的 Tailwind utilities，不定义 .card / .button 等传统组件选择器，也不使用 @apply。Tailwind 静态扫描显式涵盖 workspace 源码；变体采用完整静态类名映射，禁止拼接无法被扫描器识别的 utility 类名。
-
-每个基础组件独立放在 packages/ui/src/components/<kebab-case>.tsx，index.ts 只导出。Button 是原生按钮，LinkButton 是 Next.js 导航链接；Input、Textarea、Select、FormField、Table 提供语义与错误/禁用状态，但不承担业务保存。特殊组件在 packages/render/src/components，registry.tsx 只负责协议到实现的适配，spec-view.tsx 只组合官方 Provider / Renderer。
-
-CapacityPlanner 的宽度是运行时连续数值，唯一动态 style 仅传 --capacity CSS 变量，静态 Tailwind 类 w-[var(--capacity)] 消费它；不生成动态类名，不用 inline style 替代组件样式。useId 保证多实例 label / input 关联不冲突。
-
-## 服务端 API 与 mock
-
-`GET /api/projects` 返回领域 JSON，与展示 Spec 分离。页面直接使用服务器的数据模块，不在服务器内部绕行自己的 HTTP API。替换数据库时，保留 domain schema 与 Spec mapper，替换仓储读取层即可。
-
-## 测试与边界
-
-`pnpm test` 检查全部示例 Spec、稳定 ID、命名 slots、无效引用拒绝和真实 React SSR 文本；另检查一组件一文件、barrel-only 入口、共享 CSS 无组件选择器 / @apply、完整网格变体、表单语义及插槽组件唯一 ID。生产构建后还应检查有效动态路由的 HTML、无效 slug 的 HTTP 404、API 数据与浏览器 hydration。
-
-性能/可访问性：原生语义元素、可见焦点、range label、aria-live、响应式布局、减少动画偏好；无远程字体依赖。
-
-## 一手参考
-
-- https://nextjs.org/docs/app/getting-started/project-structure
-- https://nextjs.org/docs/app/api-reference/functions/connection
-- https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes
-- https://nextjs.org/docs/app/getting-started/server-and-client-components
-- https://tailwindcss.com/docs/installation/framework-guides/nextjs
-- https://tailwindcss.com/docs/detecting-classes-in-source-files
-- https://pnpm.io/workspaces
-- https://github.com/vercel-labs/json-render
-- https://json-render.dev/docs
-
-本项目演示明确的架构取舍，不宣称所有团队必须使用完全相同的目录结构。
-
-UI 包是 Next.js 专用基础组件库：导航组件 LinkButton 与 Frame 使用 next/link；LinkButton 是链接而非提交按钮。表单行为使用独立的原生 Button 组件。
-
-## 数据实验室（查询结果 → map → json-render）
-
-新增主站动态路由 `/analytics/commerce`、`/analytics/empty`、`/analytics/zero`，组件文档 `/components/charts`。原项目详情、工作台、表单和文档保留。
-
-- `packages/data/src/analytics/fixtures/*.json`：数据库查询结果形状的静态 rows。每日订单、渠道聚合、状态聚合和团队目标不是 UI Spec，也没有真实数据库连接。
-- `repository.ts`：场景白名单读取、query schema 校验，未知场景返回 absent，由 Next 路由产生 404。真实系统可在这里替换为驱动查询（日期顺序由 SQL ORDER BY 保证）。
-- `display.json`：独立、可修改的展示组件树以及明确绑定。标题、说明、单位、布局、顺序、空态文案由此声明；不从数据存在与否猜测页面结构。
-- `mapping.ts`：显式 `.map` 将查询字段转换为 points/items/rows，再复用现有 `projectContentSpec` 一节点一元素协议，不在 mapper 偷加标题、容器或 slot。
-- `packages/ui/src/components`：自研 LineChart / BarChart / DistributionChart / ProgressList，通用组件不取数或依赖业务仓储，统一注册至已有 catalog / registry。ContentTable 复用原组件。
-- 页内依次展示实际查询 rows、展示配置与生成 Spec；快照排除显式调试节点避免自递归。请求时服务器取数、转换并 SSR，而不是客户端 fetch 空壳。
-
-当前契约专注非负计数：0 保留，空 rows 显式空态；目标 max 为正且 value 不超过目标。未知查询列、负数、非有限值和非法绑定拒绝。图表有可读文本/表格回退和 SVG 名称，进度为原生带名称 progress；不以色彩作为唯一信息来源。金额、负增长和缺失日期应另建业务契约，不能用本示例计数规则静默修正。
+`test:http` 会启动并关闭本地 3200 端口的生产服务，检查三个路由、首屏 HTML、导航目标、无效参数和已移除入口。检查前需完成构建，且端口没有其他服务占用。实际结果见 [验证记录](docs/validation.md)。工程修改约定见 [AGENTS.md](AGENTS.md)。

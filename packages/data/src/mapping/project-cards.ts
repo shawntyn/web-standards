@@ -1,9 +1,12 @@
 import type { Project } from "@repo/domain";
 import { node, type Node } from "../spec-node";
-export function projectCardsToElements(data: Project[]): Record<string, Node> {
-  // Domain JSON -> view protocol. This explicit map is the intentional boundary.
+
+// 首页摘要有明确的固定视图：每个项目一张卡片和一个详情链接。
+export function projectCardsToElements(
+  projects: Project[],
+): Record<string, Node> {
   return Object.fromEntries(
-    data.flatMap((project) => {
+    projects.flatMap((project) => {
       const id = `project-${project.slug}`;
       return [
         [
@@ -11,24 +14,14 @@ export function projectCardsToElements(data: Project[]): Record<string, Node> {
           node(
             "Card",
             { title: project.name, description: project.description },
-            [`${id}-status`],
-            { header: [`${id}-category`], footer: [`${id}-link`] },
+            [`${id}-link`],
           ),
-        ],
-        [`${id}-category`, node("Badge", { text: project.category })],
-        [
-          `${id}-status`,
-          node("Text", {
-            text: `${project.members} 位协作者 · ${project.tasks} 条任务`,
-            tone: "muted",
-          }),
         ],
         [
           `${id}-link`,
           node("LinkButton", {
-            label: "查看动态页面",
+            label: `打开 ${project.name}`,
             href: `/projects/${project.slug}`,
-            variant: "secondary",
           }),
         ],
       ] as [string, Node][];

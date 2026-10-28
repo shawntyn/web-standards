@@ -1,7 +1,8 @@
 import { connection } from "next/server";
 import { SpecView } from "@repo/render";
-import { homeSpec } from "@repo/data";
+import { homeSpec, pageSpec } from "@repo/data";
+
 export default async function Page() {
   await connection();
-  return <SpecView spec={homeSpec()} />;
+  return <SpecView spec={pageSpec(homeSpec())} />;
 }

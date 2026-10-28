@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 export const metadata: Metadata = {
-  title: { default: "Web Standard | 工程规范", template: "%s | Web Standard" },
+  title: {
+    default: "Web Standard | 从数据到页面",
+    template: "%s | Web Standard",
+  },
   description:
-    "可运行的全栈 Web 项目规范，基于 Next.js、Tailwind CSS、pnpm 和 json-render。",
+    "三个路由的简洁示例：本地 JSON 经校验和转换，通过 json-render 输出页面。",
 };
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

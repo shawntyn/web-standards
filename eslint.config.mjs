@@ -4,6 +4,6 @@ import ts from "eslint-config-next/typescript";
 export default defineConfig([
   ...next,
   ...ts,
-  { settings: { next: { rootDir: ["apps/web/", "apps/docs/"] } } },
+  { settings: { next: { rootDir: ["apps/web/"] } } },
   globalIgnores(["**/.next/**", "**/node_modules/**", "**/next-env.d.ts"]),
 ]);

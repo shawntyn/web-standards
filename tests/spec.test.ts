@@ -1,52 +1,23 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
-import { renderToString } from "react-dom/server";
 import { createElement } from "react";
-import { SpecView, ProjectSpecViewRender } from "../packages/render/src/index";
-import { projectContentSpec } from "../packages/render/src/projects/project-content-spec";
-import { ProjectSchema } from "../packages/domain/src/index";
+import { renderToString } from "react-dom/server";
+import { SpecView } from "../packages/render/src/index";
+import { contentToSpec } from "../packages/render/src/content-to-spec";
+import {
+  ContentSchema,
+  ProjectSchema,
+  type ContentBlock,
+} from "../packages/domain/src/index";
 import {
   homeSpec,
-  standardsSpec,
-  projectSpec,
+  pageSpec,
   projects,
   getProject,
-  projectCardsToElements,
   validateSpec,
 } from "../packages/data/src/index";
 
-test("all page examples are valid catalog specs with resolved references", () => {
-  for (const spec of [
-    homeSpec(),
-    standardsSpec(),
-    ...projects.map(projectSpec),
-  ])
-    assert.equal(validateSpec(spec), spec);
-});
-test("domain .map creates stable card IDs and named slots", () => {
-  const elements = projectCardsToElements(projects);
-  for (const project of projects) {
-    assert.equal(
-      elements["project-" + project.slug]?.props.title,
-      project.name,
-    );
-    assert.deepEqual(elements["project-" + project.slug]?.slots?.footer, [
-      "project-" + project.slug + "-link",
-    ]);
-  }
-});
-test("unknown routes return no domain resource", () => {
-  assert.equal(getProject("missing"), undefined);
-});
-type SourceNode = {
-  id: string;
-  type: string;
-  props: Record<string, unknown>;
-  children?: SourceNode[];
-  slots?: Record<string, SourceNode[]>;
-};
-function flatten(node: SourceNode): SourceNode[] {
+function flatten(node: ContentBlock): ContentBlock[] {
   return [
     node,
     ...(node.children ?? []).flatMap(flatten),
@@ -55,222 +26,192 @@ function flatten(node: SourceNode): SourceNode[] {
     ),
   ];
 }
-function fixture(content: unknown) {
-  return ProjectSchema.parse({ ...projects[0]!, content });
+function render(content: unknown) {
+  return renderToString(
+    createElement(SpecView, { spec: contentToSpec(content) }),
+  );
 }
-test("real json-render SSR emits explicitly declared page structures and slots", () => {
-  const [atlas, orbit, field] = projects.map((project) =>
-    renderToString(createElement(SpecView, { spec: projectSpec(project) })),
+
+test("首页与两个项目通过实际 catalog、registry 和官方 Renderer 输出 SSR 内容", () => {
+  const home = renderToString(
+    createElement(SpecView, { spec: pageSpec(homeSpec()) }),
   );
-  assert.match(atlas, /Atlas 工作空间/);
-  assert.match(atlas, /capacity-input/);
-  assert.match(orbit, /<blockquote/);
-  assert.match(orbit, /<pre/);
-  assert.match(field, /<table/);
-  for (const html of [orbit, field])
-    assert.doesNotMatch(html, /capacity-input/);
-  for (const html of [atlas, orbit, field]) {
-    assert.doesNotMatch(html, /DOMAIN JSON|原始业务数据|这不是静态导出的页面/);
-  }
+  for (const slug of ["atlas", "orbit"])
+    assert.match(home, new RegExp(`href="/projects/${slug}"`));
+  assert.match(home, /href="\/analytics\/empty"/);
+  const atlas = render(projects[0].content);
+  const orbit = render(projects[1].content);
+  assert.match(atlas, /<h1[^>]*>Atlas 项目<\/h1>/);
+  assert.match(atlas, /<li>整理首页内容<\/li>/);
+  assert.match(atlas, /<footer[^>]*><a[^>]*href="\/projects\/orbit"/);
+  assert.match(orbit, /<caption[^>]*>阅读计划<\/caption>/);
+  assert.match(orbit, /<td[^>]*>了解数据结构<\/td>/);
+  assert.doesNotMatch(orbit, /本周安排/);
 });
-test("project files are independent trees with genuinely different structures", () => {
-  const folder = new URL("../packages/data/src/projects/", import.meta.url);
-  assert.deepEqual(readdirSync(folder).sort(), [
-    "atlas.json",
-    "field.json",
-    "orbit.json",
-  ]);
+
+test("逐节点保持 ID、props、children 顺序和命名 slots，一节点只生成一个元素", () => {
   for (const project of projects) {
-    const source = JSON.parse(
-      readFileSync(new URL(`${project.slug}.json`, folder), "utf8"),
-    );
-    assert.deepEqual(ProjectSchema.parse(source), project);
-  }
-  assert.equal(
-    new Set(
-      projects.map((p) =>
-        flatten(p.content)
-          .map((n) => n.type)
-          .join(","),
-      ),
-    ).size,
-    3,
-  );
-  assert.equal(
-    projects.filter((p) =>
-      flatten(p.content).some((n) => n.type === "CapacityPlanner"),
-    ).length,
-    1,
-  );
-});
-test("every source node maps exactly once, preserving props, child order and explicit slots", () => {
-  for (const project of projects) {
-    const spec = projectContentSpec(project);
+    const spec = validateSpec(contentToSpec(project.content));
     const source = flatten(project.content);
     assert.equal(spec.root, project.content.id);
-    assert.equal(Object.keys(spec.elements).length, source.length);
     assert.deepEqual(
       Object.keys(spec.elements).sort(),
-      source.map((n) => n.id).sort(),
+      source.map((node) => node.id).sort(),
     );
-    for (const item of source) {
-      const mapped = spec.elements[item.id]!;
-      const heading = /^h([1-6])$/.exec(item.type);
+    for (const node of source) {
+      const element = spec.elements[node.id];
+      const heading = /^h([1-6])$/.exec(node.type);
       assert.equal(
-        mapped.type,
-        heading ? "Heading" : item.type === "p" ? "Text" : item.type,
+        element.type,
+        heading ? "Heading" : node.type === "p" ? "Text" : node.type,
       );
       assert.deepEqual(
-        mapped.props,
-        heading ? { ...item.props, level: Number(heading[1]) } : item.props,
+        element.props,
+        heading ? { ...node.props, level: Number(heading[1]) } : node.props,
       );
       assert.deepEqual(
-        mapped.children ?? [],
-        (item.children ?? []).map((n) => n.id),
+        element.children,
+        (node.children ?? []).map((child) => child.id),
       );
       assert.deepEqual(
-        mapped.slots ?? {},
+        element.slots ?? {},
         Object.fromEntries(
-          Object.entries(item.slots ?? {}).map(([key, nodes]) => [
-            key,
-            nodes.map((n) => n.id),
+          Object.entries(node.slots ?? {}).map(([name, children]) => [
+            name,
+            children.map((child) => child.id),
           ]),
         ),
       );
     }
-    // The page adapter must not inject a frame or navigation into project data.
-    assert.deepEqual(projectSpec(project), spec);
   }
 });
-test("h1 is explicit, metadata does not invent content, and a leaf needs no generated layout", () => {
-  const project = fixture({
-    id: "only",
-    type: "h1",
-    props: { text: "The authored title" },
-  });
-  const spec = projectContentSpec(project);
-  const html = renderToString(
-    createElement(ProjectSpecViewRender, { project }),
-  );
-  assert.match(html, /<h1[^>]*>The authored title<\/h1>/);
-  assert.equal(Object.keys(spec.elements).length, 1);
-  const metadataChanged = {
-    ...project,
-    name: "A different metadata name",
-    description: "A metadata description that must not render.",
-  };
-  assert.deepEqual(projectContentSpec(metadataChanged), spec);
-  const paragraphOnly = fixture({
-    id: "only",
-    type: "p",
-    props: { text: "No heading requested" },
-  });
-  const paragraphHtml = renderToString(
-    createElement(ProjectSpecViewRender, { project: paragraphOnly }),
-  );
-  assert.doesNotMatch(paragraphHtml, /<h1|<article|返回|Atlas/);
-  assert.equal(
-    Object.keys(projectContentSpec(paragraphOnly).elements).length,
-    1,
-  );
+
+test("增删和重排 JSON 会改变输出；删除 h1 或 slot 不会补回", () => {
+  const project = structuredClone(projects[0]);
+  const root = project.content;
+  root.children = root.children!.filter((node) => node.type !== "h1").reverse();
+  const card = root.children[0];
+  delete card.slots;
+  root.children.push({ id: "added", type: "p", props: { text: "新增的一行" } });
+  const spec = contentToSpec(root);
+  assert.deepEqual(spec.elements.atlas.children, [
+    "atlas-plan",
+    "atlas-intro",
+    "added",
+  ]);
+  assert.equal(spec.elements["atlas-title"], undefined);
+  assert.equal(spec.elements["atlas-next"], undefined);
+  const html = render(root);
+  assert.doesNotMatch(html, /<h1|<footer|阅读 Orbit/);
+  assert.ok(html.indexOf("本周安排") < html.indexOf("一个小型团队"));
+  assert.match(html, /新增的一行/);
 });
-test("reorder, remove and add nodes without changing a route or template", () => {
-  const project = fixture({
-    id: "root",
-    type: "Stack",
-    props: { gap: "sm" },
-    children: [
-      { id: "second", type: "p", props: { text: "Second authored paragraph" } },
-      { id: "first", type: "h2", props: { text: "First authored heading" } },
-      { id: "new", type: "p", props: { text: "An additional paragraph" } },
-    ],
+
+test("正文外元数据不改变详情；叶节点不生成额外布局", () => {
+  const original = projects[0];
+  const changed = ProjectSchema.parse({
+    ...original,
+    name: "另一个名字",
+    description: "仅用于首页摘要",
   });
-  const spec = projectContentSpec(project);
-  assert.deepEqual(spec.elements.root.children, ["second", "first", "new"]);
-  const html = renderToString(
-    createElement(ProjectSpecViewRender, { project }),
+  assert.deepEqual(
+    contentToSpec(changed.content),
+    contentToSpec(original.content),
   );
-  assert.ok(
-    html.indexOf("Second authored paragraph") <
-      html.indexOf("First authored heading"),
-  );
-  assert.ok(
-    html.indexOf("First authored heading") <
-      html.indexOf("An additional paragraph"),
-  );
-  assert.doesNotMatch(html, /Atlas 工作空间|试算团队容量/);
+  const leaf = { id: "only", type: "p", props: { text: "只有正文" } };
+  assert.equal(Object.keys(contentToSpec(leaf).elements).length, 1);
+  const html = render(leaf);
+  assert.match(html, /<p[^>]*>只有正文<\/p>/);
+  assert.doesNotMatch(html, /<h1|<main|<nav/);
 });
-test("schema rejects unknown types, hidden props, duplicate tree IDs and malformed table rows", () => {
-  const valid = (content: unknown) =>
-    ProjectSchema.safeParse({ ...projects[0], content }).success;
-  assert.equal(
-    valid({ id: "a", type: "unsafe-html", props: { html: "<script />" } }),
-    false,
-  );
-  assert.equal(
-    valid({ id: "a", type: "h1", props: { text: "Title", level: 3 } }),
-    false,
-  );
-  assert.equal(
-    valid({ id: "a", type: "p", props: { text: "Text", onClick: "execute" } }),
-    false,
-  );
-  assert.equal(
-    valid({
-      id: "root",
+
+test("未知项目和危险参数不会读取任意文件", () => {
+  for (const slug of [
+    "missing",
+    "ATLAS",
+    "__proto__",
+    "constructor",
+    "../atlas",
+    "atlas/extra",
+    "",
+  ])
+    assert.equal(getProject(slug), undefined);
+});
+
+test("内容 schema 拒绝未知组件、额外 props、非法 slots、重复 ID 和错列表格", () => {
+  for (const content of [
+    { id: "a", type: "Script", props: {} },
+    { id: "a", type: "h1", props: { text: "标题", level: 2 } },
+    { id: "a", type: "p", props: { text: "正文", onClick: "execute" } },
+    { id: "a", type: "p", props: { text: "正文" }, children: [] },
+    { id: "a", type: "Card", props: {}, slots: { secret: [] } },
+    {
+      id: "a",
       type: "Card",
       props: {},
-      children: [{ id: "same", type: "p", props: { text: "one" } }],
-      slots: { footer: [{ id: "same", type: "p", props: { text: "two" } }] },
-    }),
-    false,
-  );
-  assert.equal(
-    valid({
+      children: [{ id: "same", type: "p", props: { text: "一" } }],
+      slots: { footer: [{ id: "same", type: "p", props: { text: "二" } }] },
+    },
+    {
       id: "a",
       type: "ContentTable",
-      props: { caption: "data", columns: ["one"], rows: [["one", "two"]] },
-    }),
-    false,
-  );
-});
-test("special slots contain only explicitly authored nodes and can be removed", () => {
-  const project = fixture({
-    id: "demo",
-    type: "Card",
-    props: {},
-    children: [{ id: "body", type: "p", props: { text: "Card body" } }],
-    slots: {
-      footer: [
-        { id: "planner", type: "CapacityPlanner", props: { initial: 4 } },
-      ],
+      props: { caption: "表", columns: ["一列"], rows: [["一", "二"]] },
     },
-  });
-  const spec = projectContentSpec(project);
-  assert.deepEqual(spec.elements.demo.slots?.footer, ["planner"]);
-  assert.equal(Object.keys(spec.elements).length, 3);
-  const withoutSlot = fixture({
-    id: "demo",
-    type: "Card",
-    props: {},
-    children: [{ id: "body", type: "p", props: { text: "Card body" } }],
-  });
-  const removed = projectContentSpec(withoutSlot);
-  assert.equal(Object.keys(removed.elements).length, 2);
-  assert.equal(removed.elements.planner, undefined);
-  assert.equal(validateSpec(spec), spec);
+  ])
+    assert.equal(ContentSchema.safeParse(content).success, false);
 });
-test("invalid node references and unknown components are rejected", () => {
-  assert.throws(() =>
-    validateSpec({
+
+test("Spec 校验拒绝缺失根、引用、循环、未知 slot、未知 props 和未使用节点", () => {
+  const invalidSpecs: ReturnType<typeof contentToSpec>[] = [
+    { root: "missing", elements: {} },
+    {
       root: "a",
       elements: { a: { type: "Stack", props: {}, children: ["missing"] } },
-    }),
-  );
-  assert.throws(() =>
-    validateSpec({
+    },
+    {
       root: "a",
-      elements: { a: { type: "DangerousCode", props: {}, children: [] } },
+      elements: { a: { type: "Stack", props: {}, children: ["a"] } },
+    },
+    {
+      root: "a",
+      elements: {
+        a: { type: "Card", props: {}, children: [], slots: { secret: [] } },
+      },
+    },
+    {
+      root: "a",
+      elements: {
+        a: {
+          type: "Text",
+          props: { text: "文字", html: "<b />" },
+          children: [],
+        },
+      },
+    },
+    {
+      root: "a",
+      elements: { a: { type: "Unknown", props: {}, children: [] } },
+    },
+    {
+      root: "a",
+      elements: {
+        a: { type: "Text", props: { text: "文字" }, children: ["b"] },
+        b: { type: "Text", props: { text: "子项" }, children: [] },
+      },
+    },
+    {
+      root: "a",
+      elements: {
+        a: { type: "Stack", props: {}, children: [] },
+        b: { type: "Text", props: { text: "孤立节点" }, children: [] },
+      },
+    },
+  ];
+  for (const spec of invalidSpecs) assert.throws(() => validateSpec(spec));
+  assert.throws(() =>
+    pageSpec({
+      root: "site-frame",
+      elements: { "site-frame": { type: "Stack", props: {} } },
     }),
   );
 });

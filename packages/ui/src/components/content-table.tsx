@@ -25,6 +25,13 @@ export function ContentTable({
         </tr>
       </thead>
       <tbody>
+        {rows.length === 0 && (
+          <tr>
+            <td colSpan={columns.length} className="px-4 py-6 text-muted">
+              暂无数据
+            </td>
+          </tr>
+        )}
         {rows.map((row, i) => (
           <tr key={i} className="border-b border-line last:border-0">
             {row.map((cell, j) => (

@@ -1,32 +1,28 @@
 import { SpecView } from "@repo/render";
+import { pageSpec } from "@repo/data";
 export default function NotFound() {
   return (
     <SpecView
-      spec={{
-        root: "root",
+      spec={pageSpec({
+        root: "not-found",
         elements: {
-          root: {
+          "not-found": {
             type: "Stack",
-            props: { gap: "lg" },
-            children: ["heading", "text", "back"],
+            props: {},
+            children: ["not-found-title", "not-found-text"],
           },
-          heading: {
+          "not-found-title": {
             type: "Heading",
-            props: { text: "404 · 这里还没有内容", level: 1 },
+            props: { text: "404 · 没有找到内容", level: 1 },
             children: [],
           },
-          text: {
+          "not-found-text": {
             type: "Text",
-            props: { text: "请求的资源不存在，请从目录选择有效示例。" },
-            children: [],
-          },
-          back: {
-            type: "LinkButton",
-            props: { label: "返回首页", href: "/" },
+            props: { text: "请通过首页选择已有的项目或统计数据。" },
             children: [],
           },
         },
-      }}
+      })}
     />
   );
 }

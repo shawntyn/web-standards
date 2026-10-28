@@ -1,33 +1,47 @@
-# 验证记录
+# 简化版本验证记录
 
-验证日期：2026-10-20。记录实际执行结果，不以源码存在代替运行成功。
+验证日期：2026-10-27，仓库 `/workspace/web-standards`。开始修改时 Git 工作区干净。只修改工作区代码，没有提交、推送、创建 PR 或部署。
 
-## 工具链
+## 2026-10-28 提交前复核
 
-Node.js 24.19.0 / pnpm 12.14.0 / Next.js 16.4.2 / React 19.3.1 / Tailwind CSS 4.3.3 / json-render 0.21.1 / TypeScript 6.0.3。版本与 lockfile 未因本次内容重构而升级。
+按用户明确授权准备直接提交到 main。远端 main 与本地基线同为 `07dabf7`，没有额外提交需要整合。本日使用 pnpm 12.14.0 重新通过 frozen-lockfile 安装、format:check、lint、完整 typecheck、12 项测试、生产构建、32 项 HTTP 检查与 diff 检查；HTTP 明细为本日结果。24 项 Chromium 结果仍为 2026-10-27 的验证记录，本日没有重跑浏览器。未部署；远端提交和 CI 结果以交付时实际核验为准。
 
-## 声明式协议修正
+## 环境与安装
 
-- content 为显式根节点树，每个节点声明 id / type / props 及可选 children / slots。
-- 转换器仅展平结构并转换语义别名，节点数量和源树一致；不注入标题、描述、导航、默认容器或特殊 slot。
-- h1 至 h6 与 p 使用受信任组件，布局由 JSON 明确声明，移除强制文章式 Document 排版。
-- 三个独立项目文件声明不同组件树，工作台编辑同一树结构，旧会话数据通过 v3 key 隔离。
-- 基础与应用 catalog / registry 分层，文档继续使用本地 MDX。
+Node.js 24.19.0。环境默认 pnpm 为 11.25.0，项目指定的 pnpm 12.14.0 安装在 `/tmp/web-standards-tools`，后续验证使用该版本。初次安装因默认用户缓存目录不可写失败，改用 `/tmp` 下的数据、缓存及 store 目录后成功，没有请求额外权限。
 
-## 自动化验证结果
+移除文档站、编辑器的依赖后，以 pnpm 12.14.0 更新 lockfile，再运行 `pnpm install --frozen-lockfile` 成功。Next.js 16.4.2、React 19.3.1、Tailwind CSS 4.3.3、json-render 0.21.1、TypeScript 6.0.3 均未升级。lockfile 的变更只删除已不用的依赖项。
 
-本次 lint、format、workspace typecheck、根目录 tsc、23 项测试、双站 production build 与 29 项真实 HTTP 检查全部通过。记录见 validation/*-declarative.log 和 validation/http-declarative.json。旧的 *-content.log 与 http-content.json 仅代表上一次内容块版本。
+安装仍提示既有的 ESLint 10 与部分 eslint-config-next 传递插件的 peer 版本范围不匹配；`pnpm peers check` 可复现，实际 lint 成功。本次没有扩大范围升级或降级这些依赖。
 
-第一次构建在编译成功后的 TypeScript 阶段被资源限制以 137 终止；释放并行验证任务后，以 1024 MiB Node heap 和两核 CPU affinity 串行重跑两站成功。未跳过类型检查，也未改变源码构建配置。
+## 实际结果
 
-核心测试检查每个源节点只映射一次、ID / props / children / slots 保真、h1 显式渲染、改变元数据不生成内容、删除标题不补回、叶节点不产生布局、嵌套与插槽 ID 唯一、拒绝未知类型及额外属性；交互测试覆盖编辑树、无效 JSON、保存、会话恢复。
+| 命令 / 检查                        | 结果                                          |
+| ---------------------------------- | --------------------------------------------- |
+| `pnpm install --frozen-lockfile`   | 通过，pnpm 12.14.0，临时可写 store            |
+| `pnpm format:check`                | 通过                                          |
+| `pnpm lint`                        | 通过                                          |
+| `pnpm typecheck`                   | 通过，包含所有 workspace 及根目录测试类型检查 |
+| `pnpm test`                        | 12 项通过，0 失败                             |
+| `pnpm build`                       | 单个 Next.js 应用生产构建通过                 |
+| `pnpm test:http`                   | 32 项生产 HTTP 检查通过                       |
+| Chromium + Playwright 本地生产服务 | 24 项浏览器检查通过                           |
+| `git diff --check`                 | 通过                                          |
 
-HTTP 脚本检查三页 SSR、只在声明时出现的容量工具、9 篇 MDX、404，以及两站 POST / PATCH 共享树校验及保留。成功响应必须保留 content 并声明 serverStored: false。
+首次完整类型检查发现测试数组的类型推断问题；首次构建发现 404 Spec 的两个叶节点缺少必需的 children 数组。两项均已修正，并重新通过类型检查、测试和构建，没有跳过任何检查。
 
-## 明确边界
+生产构建只有 `/`、`/projects/[slug]`、`/analytics/[slug]` 三个页面路由和框架 `/_not-found`；三个页面均在请求时 SSR。`scripts/verify-production.mjs` 同时检查构建 manifest，避免残留页面入口。
 
-以上是源码构建、服务端 HTML、真实 HTTP 与 happy-dom 交互验证，不等于真实浏览器视觉或线上登录后的验收。
+## 覆盖内容与证据
 
-mock API 不写回源码或数据库。会话状态只保存在当前浏览器标签页；独立 SSR 路由仍展示仓库中的初始 JSON。正文编辑器是带共享校验的 JSON 协议编辑器，不是富文本编辑器。本例覆盖创建、读取和编辑，不包含删除。
+- `tests/spec.test.ts`：真实官方 Renderer 输出、项目结构差异、一节点一元素、ID/props/children/slots 保真、JSON 增删重排、不补标题或 slot、元数据与正文分离、非法内容及 Spec 拒绝。
+- `tests/analytics.test.ts`：查询字段到表格单元格、顺序、零值、空态、不修改源数据、非法查询数据和未知参数。
+- `tests/ui-architecture.test.ts`：独立组件文件、barrel 入口、共享 CSS 边界和静态 Tailwind 网格变体。
+- [HTTP 明细](validation/http-simplified.json)：五个有效 URL 的 SSR 内容和全部站内导航目标、百分号编码参数、未知/大小写错误/原型属性/多段参数、缺少参数、移除页面，以及 GET/POST/PATCH 旧 API 的真实 404。
+- [浏览器明细](validation/browser-simplified.json)：Chromium 154.0.8037.57，桌面 1280×900、手机 390×844。五个有效 URL 直接访问和刷新、真实 Next 客户端点击跳转、浏览器返回、零值/空态、键盘焦点、五页无水平溢出、七个无效 URL 直接访问和刷新。客户端跳转检查了 window 标记保留，确认没有整页重载。有效页面控制台错误和 pageerror 均为空。
 
-预览站保持 owner-private，公开源码不改变预览权限。源码通过验证不代表已完成部署；发布版本由部署流程另行确认。未登录时看到登录页不能作为应用页面验收。
+浏览器验证通过 `/tmp` 安装 Playwright，使用系统 `/usr/bin/chromium` 与临时检查脚本 `/tmp/web-standards-browser-check.cjs`；没有添加应用框架或浏览器测试依赖到项目。已查看本地桌面首页与手机空态截图，确认内容和导航可读。
+
+## 未验证项
+
+没有部署或更新既有线上预览，因此未做线上登录后的验收。没有运行 Firefox、Safari、屏幕阅读器或覆盖所有设备尺寸。旧的 `validation/*-declarative.*`、`*-content.*`、`analytics.md` 等仅为历史记录，不代表当前版本。

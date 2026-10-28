@@ -1,3 +1,5 @@
+> 历史记录：以下为简化前的版本，当前结果见 [简化版本验证记录](../validation.md)。
+
 # Analytics change validation
 
 Verified 2026-10-21 against the existing locked dependency graph, without upgrading dependencies.

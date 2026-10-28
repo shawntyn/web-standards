@@ -1,1 +1,0 @@
-export const tree = `web-standards/\n├── apps/\n│   ├── web/        # 主站 + 动态项目详情\n│   └── docs/       # 组件库文档（独立应用）\n├── packages/\n│   ├── ui/         # 自建基础组件与样式\n│   ├── render/     # catalog + registry + slot\n│   ├── domain/     # 业务 schema / 编辑 / mock 服务\n│   └── data/       # JSON / schema / map 转换\n├── tests/          # 数据与渲染协议测试\n└── pnpm-workspace.yaml`;

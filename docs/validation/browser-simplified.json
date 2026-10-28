@@ -1,0 +1,135 @@
+{
+  "verifiedAt": "2026-10-27T12:37:27.959Z",
+  "browser": "154.0.8037.57",
+  "viewports": ["1280x900", "390x844"],
+  "checks": [
+    {
+      "action": "direct visit and reload",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "action": "direct visit and reload",
+      "path": "/projects/atlas",
+      "status": 200
+    },
+    {
+      "action": "direct visit and reload",
+      "path": "/projects/orbit",
+      "status": 200
+    },
+    {
+      "action": "direct visit and reload",
+      "path": "/analytics/commerce",
+      "status": 200
+    },
+    {
+      "action": "direct visit and reload",
+      "path": "/analytics/empty",
+      "status": 200
+    },
+    {
+      "action": "client navigation",
+      "path": "/projects/atlas",
+      "title": "Atlas 项目"
+    },
+    {
+      "action": "client navigation",
+      "path": "/projects/orbit",
+      "title": "Orbit 项目"
+    },
+    {
+      "action": "browser back",
+      "path": "/projects/atlas"
+    },
+    {
+      "action": "client navigation",
+      "path": "/analytics/commerce",
+      "title": "渠道订单"
+    },
+    {
+      "action": "client navigation",
+      "path": "/analytics/empty",
+      "title": "渠道订单"
+    },
+    {
+      "action": "client navigation",
+      "path": "/",
+      "title": "从数据到页面"
+    },
+    {
+      "action": "keyboard navigation",
+      "focused": {
+        "tag": "A",
+        "outline": "3px"
+      }
+    },
+    {
+      "action": "mobile no horizontal overflow",
+      "path": "/",
+      "content": 390,
+      "viewport": 390
+    },
+    {
+      "action": "mobile no horizontal overflow",
+      "path": "/projects/atlas",
+      "content": 390,
+      "viewport": 390
+    },
+    {
+      "action": "mobile no horizontal overflow",
+      "path": "/projects/orbit",
+      "content": 390,
+      "viewport": 390
+    },
+    {
+      "action": "mobile no horizontal overflow",
+      "path": "/analytics/commerce",
+      "content": 390,
+      "viewport": 390
+    },
+    {
+      "action": "mobile no horizontal overflow",
+      "path": "/analytics/empty",
+      "content": 390,
+      "viewport": 390
+    },
+    {
+      "action": "invalid direct visit and reload",
+      "path": "/projects/missing",
+      "status": 404
+    },
+    {
+      "action": "invalid direct visit and reload",
+      "path": "/analytics/missing",
+      "status": 404
+    },
+    {
+      "action": "invalid direct visit and reload",
+      "path": "/projects/__proto__",
+      "status": 404
+    },
+    {
+      "action": "invalid direct visit and reload",
+      "path": "/analytics/constructor",
+      "status": 404
+    },
+    {
+      "action": "invalid direct visit and reload",
+      "path": "/projects",
+      "status": 404
+    },
+    {
+      "action": "invalid direct visit and reload",
+      "path": "/analytics",
+      "status": 404
+    },
+    {
+      "action": "invalid direct visit and reload",
+      "path": "/standards",
+      "status": 404
+    }
+  ],
+  "pageErrors": [],
+  "validPageConsoleErrors": []
+}

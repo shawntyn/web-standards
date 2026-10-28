@@ -13,8 +13,7 @@
     "react-dom": "19.3.1",
     "@repo/ui": "workspace:*",
     "@repo/render": "workspace:*",
-    "@repo/data": "workspace:*",
-    "@repo/domain": "workspace:*"
+    "@repo/data": "workspace:*"
   },
   "devDependencies": {
     "tailwindcss": "4.3.3",

@@ -1,8 +1,6 @@
-export * from "./project-schema";
-export * from "./project-draft";
-export * from "./project-repository";
-export * from "./mock-mutation";
-export { STORAGE_KEY } from "./project-storage-key";
-export * from "./content";
-
-export * from "./data-display";
+export { ContentSchema, type ContentBlock } from "./content";
+export {
+  ProjectSchema,
+  ProjectListSchema,
+  type Project,
+} from "./project-schema";
