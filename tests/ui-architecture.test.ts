@@ -20,7 +20,7 @@ test("共享 CSS 仅 tokens 和 base；网格使用完整 Tailwind 类名", () =
   assert.match(css, /@theme/);
   assert.match(css, /@layer base/);
   assert.doesNotMatch(css, /@apply|\.[a-zA-Z][\w-]*\s*[:{,>]/);
-  for (const columns of [1, 2, 3, 4]) {
+  for (const columns of [1, 2, 3, 4] as const) {
     const html = renderToString(createElement(Grid, { columns }, "内容"));
     assert.ok(html.includes(`min-[851px]:grid-cols-${columns}`));
     assert.doesNotMatch(html, /style=/);

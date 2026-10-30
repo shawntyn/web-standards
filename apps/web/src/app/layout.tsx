@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { connection } from "next/server";
+import { getProjects } from "@repo/data";
+import { AppShell } from "@repo/ui";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {
@@ -7,12 +10,31 @@ export const metadata: Metadata = {
     template: "%s | Web Standard",
   },
   description:
-    "首页与两个项目详情：本地 JSON 经校验和转换，通过 json-render 输出页面。",
+    "项目列表与动态详情：本地 JSON 经校验和转换，通过 json-render 输出页面。",
 };
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  await connection();
+  const projects = await getProjects();
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <AppShell
+          brand="Web Standard"
+          links={[
+            { label: "首页", href: "/" },
+            ...projects.map((project) => ({
+              label: project.name,
+              href: `/projects/${project.slug}`,
+            })),
+          ]}
+        >
+          {children}
+        </AppShell>
+      </body>
     </html>
   );
 }

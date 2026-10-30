@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-10-28T02:34:02.484Z",
+  "verifiedAt": "2026-10-30T02:40:03.399Z",
   "checks": [
     {
       "method": "GET",
@@ -63,6 +63,11 @@
     },
     {
       "method": "GET",
+      "path": "/projects/field",
+      "status": 404
+    },
+    {
+      "method": "GET",
       "path": "/projects",
       "status": 404
     },
@@ -74,11 +79,6 @@
     {
       "method": "GET",
       "path": "/components/card",
-      "status": 404
-    },
-    {
-      "method": "GET",
-      "path": "/projects/field",
       "status": 404
     },
     {
@@ -129,6 +129,41 @@
     {
       "method": "PATCH",
       "path": "/api/projects/atlas",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/projects/verify-a0161bed-68ad-4cb1-8991-c16a74b07cb2",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/projects/verify_missing",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/verify-missing",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/projects/verify-a0161bed-68ad-4cb1-8991-c16a74b07cb2",
       "status": 404
     }
   ]

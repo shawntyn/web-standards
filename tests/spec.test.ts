@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { before, test } from "node:test";
 import assert from "node:assert/strict";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
@@ -7,17 +7,28 @@ import { contentToSpec } from "../packages/render/src/content-to-spec";
 import {
   ContentSchema,
   ProjectSchema,
-  type ContentBlock,
+  type ContentNode,
+  type Project,
 } from "../packages/domain/src/index";
 import {
   homeSpec,
-  pageSpec,
-  projects,
+  getProjects,
   getProject,
   validateSpec,
 } from "../packages/data/src/index";
 
-function flatten(node: ContentBlock): ContentBlock[] {
+let projects: Project[];
+let atlasProject: Project;
+let orbitProject: Project;
+before(async () => {
+  projects = await getProjects(
+    new URL("../packages/data/src/projects/", import.meta.url),
+  );
+  atlasProject = getProject("atlas", projects)!;
+  orbitProject = getProject("orbit", projects)!;
+});
+
+function flatten(node: ContentNode): ContentNode[] {
   return [
     node,
     ...(node.children ?? []).flatMap(flatten),
@@ -26,29 +37,32 @@ function flatten(node: ContentBlock): ContentBlock[] {
     ),
   ];
 }
-function render(content: unknown) {
+function render(content: ContentNode) {
   return renderToString(
-    createElement(SpecView, { spec: contentToSpec(content) }),
+    createElement(SpecView, { spec: validateSpec(contentToSpec(content)) }),
   );
 }
 
-test("首页与两个项目通过实际 catalog、registry 和官方 Renderer 输出 SSR 内容", () => {
+test("首页与项目通过实际 catalog、registry 和官方 Renderer 输出 SSR 内容", () => {
   const home = renderToString(
-    createElement(SpecView, { spec: pageSpec(homeSpec()) }),
+    createElement(SpecView, { spec: validateSpec(homeSpec(projects)) }),
   );
-  for (const slug of ["atlas", "orbit"])
+  for (const { slug } of projects)
     assert.match(home, new RegExp(`href="/projects/${slug}"`));
   const links = [...home.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map(
     (match) => match[1],
   );
-  assert.deepEqual([...new Set(links)].sort(), [
-    "/",
-    "/projects/atlas",
-    "/projects/orbit",
-  ]);
-  const atlas = render(projects[0].content);
-  const orbit = render(projects[1].content);
+  assert.deepEqual(
+    [...new Set(links)].sort(),
+    projects.map((project) => `/projects/${project.slug}`).sort(),
+  );
+  assert.doesNotMatch(home, /<nav\b|<main\b/);
+  assert.match(home, /<h3[^>]*>Atlas 项目<\/h3>/);
+  assert.match(home, /<h3[^>]*>Orbit 项目<\/h3>/);
+  const atlas = render(atlasProject.content);
+  const orbit = render(orbitProject.content);
   assert.match(atlas, /<h1[^>]*>Atlas 项目<\/h1>/);
+  assert.match(atlas, /<h2[^>]*>本周安排<\/h2>/);
   assert.match(atlas, /<li>整理首页内容<\/li>/);
   assert.match(atlas, /<footer[^>]*><a[^>]*href="\/projects\/orbit"/);
   assert.match(orbit, /<caption[^>]*>阅读计划<\/caption>/);
@@ -94,13 +108,14 @@ test("逐节点保持 ID、props、children 顺序和命名 slots，一节点只
 });
 
 test("增删和重排 JSON 会改变输出；删除 h1 或 slot 不会补回", () => {
-  const project = structuredClone(projects[0]);
+  const project = structuredClone(atlasProject);
   const root = project.content;
   root.children = root.children!.filter((node) => node.type !== "h1").reverse();
   const card = root.children[0];
   delete card.slots;
   root.children.push({ id: "added", type: "p", props: { text: "新增的一行" } });
-  const spec = contentToSpec(root);
+  const content = ContentSchema.parse(root);
+  const spec = contentToSpec(content);
   assert.deepEqual(spec.elements.atlas.children, [
     "atlas-plan",
     "atlas-intro",
@@ -108,14 +123,14 @@ test("增删和重排 JSON 会改变输出；删除 h1 或 slot 不会补回", (
   ]);
   assert.equal(spec.elements["atlas-title"], undefined);
   assert.equal(spec.elements["atlas-next"], undefined);
-  const html = render(root);
+  const html = render(content);
   assert.doesNotMatch(html, /<h1|<footer|阅读 Orbit/);
   assert.ok(html.indexOf("本周安排") < html.indexOf("一个小型团队"));
   assert.match(html, /新增的一行/);
 });
 
 test("正文外元数据不改变详情；叶节点不生成额外布局", () => {
-  const original = projects[0];
+  const original = atlasProject;
   const changed = ProjectSchema.parse({
     ...original,
     name: "另一个名字",
@@ -125,7 +140,12 @@ test("正文外元数据不改变详情；叶节点不生成额外布局", () =>
     contentToSpec(changed.content),
     contentToSpec(original.content),
   );
-  const leaf = { id: "only", type: "p", props: { text: "只有正文" } };
+  const leaf = ContentSchema.parse({
+    id: "shell",
+    type: "p",
+    props: { text: "只有正文" },
+  });
+  assert.equal(contentToSpec(leaf).root, "shell");
   assert.equal(Object.keys(contentToSpec(leaf).elements).length, 1);
   const html = render(leaf);
   assert.match(html, /<p[^>]*>只有正文<\/p>/);
@@ -142,14 +162,18 @@ test("未知项目和危险参数不会读取任意文件", () => {
     "atlas/extra",
     "",
   ])
-    assert.equal(getProject(slug), undefined);
+    assert.equal(getProject(slug, [atlasProject, orbitProject]), undefined);
 });
 
-test("内容 schema 拒绝未知组件、额外 props、非法 slots、重复 ID 和错列表格", () => {
+test("项目读取入口拒绝未知组件、非法 props、非法 slots、重复 ID 和错列表格", () => {
   for (const content of [
     { id: "a", type: "Script", props: {} },
     { id: "a", type: "h1", props: { text: "标题", level: 2 } },
     { id: "a", type: "p", props: { text: "正文", onClick: "execute" } },
+    { id: "a", type: "p", props: { text: 123 } },
+    { id: "a", type: "Stack", props: { gap: "huge" } },
+    { id: "a", type: "Grid", props: { columns: 5 } },
+    { id: "a", type: "Card", props: { title: "标题", titleLevel: 7 } },
     { id: "a", type: "p", props: { text: "正文" }, children: [] },
     { id: "a", type: "Card", props: {}, slots: { secret: [] } },
     {
@@ -161,14 +185,17 @@ test("内容 schema 拒绝未知组件、额外 props、非法 slots、重复 ID
     },
     {
       id: "a",
-      type: "ContentTable",
+      type: "Table",
       props: { caption: "表", columns: ["一列"], rows: [["一", "二"]] },
     },
   ])
-    assert.equal(ContentSchema.safeParse(content).success, false);
+    assert.equal(
+      ProjectSchema.safeParse({ ...atlasProject, content }).success,
+      false,
+    );
 });
 
-test("Spec 校验拒绝缺失根、引用、循环、未知 slot、未知 props 和未使用节点", () => {
+test("Spec 校验拒绝缺失根、引用、循环、未知 slot、非法 props 和未使用节点", () => {
   const invalidSpecs: ReturnType<typeof contentToSpec>[] = [
     { root: "missing", elements: {} },
     {
@@ -189,8 +216,52 @@ test("Spec 校验拒绝缺失根、引用、循环、未知 slot、未知 props 
       root: "a",
       elements: {
         a: {
+          type: "Stack",
+          props: {},
+          children: [],
+          slots: { default: ["b"] },
+        },
+        b: { type: "Text", props: { text: "默认内容" }, children: [] },
+      },
+    },
+    {
+      root: "a",
+      elements: {
+        a: {
+          type: "Card",
+          props: {},
+          children: [],
+          slots: { default: ["b"] },
+        },
+        b: { type: "Text", props: { text: "默认内容" }, children: [] },
+      },
+    },
+    {
+      root: "a",
+      elements: {
+        a: {
           type: "Text",
           props: { text: "文字", html: "<b />" },
+          children: [],
+        },
+      },
+    },
+    {
+      root: "a",
+      elements: { a: { type: "Text", props: { text: 123 }, children: [] } },
+    },
+    {
+      root: "a",
+      elements: {
+        a: { type: "Heading", props: { text: "标题", level: 7 }, children: [] },
+      },
+    },
+    {
+      root: "a",
+      elements: {
+        a: {
+          type: "Table",
+          props: { caption: "表", columns: ["一列"], rows: [["一", "二"]] },
           children: [],
         },
       },
@@ -215,10 +286,4 @@ test("Spec 校验拒绝缺失根、引用、循环、未知 slot、未知 props 
     },
   ];
   for (const spec of invalidSpecs) assert.throws(() => validateSpec(spec));
-  assert.throws(() =>
-    pageSpec({
-      root: "site-frame",
-      elements: { "site-frame": { type: "Stack", props: {} } },
-    }),
-  );
 });

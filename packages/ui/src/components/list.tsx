@@ -1,5 +1,5 @@
 import React from "react";
-export function ContentList({
+export function List({
   items,
   ordered = false,
 }: {

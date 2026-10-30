@@ -1,9 +1,9 @@
 import { SpecView } from "@repo/render";
-import { pageSpec } from "@repo/data";
+import { validateSpec } from "@repo/data";
 export default function NotFound() {
   return (
     <SpecView
-      spec={pageSpec({
+      spec={validateSpec({
         root: "not-found",
         elements: {
           "not-found": {
@@ -18,7 +18,7 @@ export default function NotFound() {
           },
           "not-found-text": {
             type: "Text",
-            props: { text: "请通过首页选择 Atlas 或 Orbit 项目。" },
+            props: { text: "请通过首页选择一个项目。" },
             children: [],
           },
         },

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ContentSchema } from "./content";
+import { ContentSchema } from "./content-schema";
 
 export const ProjectSchema = z
   .object({

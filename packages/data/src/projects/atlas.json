@@ -27,12 +27,13 @@
         "id": "atlas-plan",
         "type": "Card",
         "props": {
-          "title": "本周安排"
+          "title": "本周安排",
+          "titleLevel": 2
         },
         "children": [
           {
             "id": "atlas-tasks",
-            "type": "ContentList",
+            "type": "List",
             "props": {
               "items": ["整理首页内容", "完成导航检查"]
             }
@@ -42,7 +43,7 @@
           "footer": [
             {
               "id": "atlas-next",
-              "type": "LinkButton",
+              "type": "Button",
               "props": {
                 "label": "阅读 Orbit 项目",
                 "href": "/projects/orbit"

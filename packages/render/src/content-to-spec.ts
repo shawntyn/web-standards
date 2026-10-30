@@ -1,12 +1,12 @@
 import type { Spec } from "@json-render/core";
-import { ContentSchema, type ContentBlock } from "@repo/domain";
+import type { ContentNode } from "@repo/domain";
 
 // 嵌套 JSON → 扁平 Spec。每个源节点只生成一个元素，不补写页面内容。
-export function contentToSpec(raw: unknown): Spec {
-  const content = ContentSchema.parse(raw);
+// 输入已在读取边界通过 ContentSchema 校验，这里只转换协议。
+export function contentToSpec(content: ContentNode): Spec {
   const elements: Spec["elements"] = {};
 
-  function mapNode(node: ContentBlock): string {
+  function mapNode(node: ContentNode): string {
     const children = node.children?.map(mapNode) ?? [];
     const slots = node.slots
       ? Object.fromEntries(

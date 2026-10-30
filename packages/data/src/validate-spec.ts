@@ -12,12 +12,15 @@ export function validateSpec(spec: Spec): Spec {
         element.type as keyof typeof catalog.data.components
       ];
     if (!definition) throw new Error(`未知组件：${element.type}`);
+    // catalog.validate() 检查 Spec 结构；属性仍需按组件的严格 schema 校验。
     definition.props.parse(element.props);
     const allowedSlots: readonly string[] =
       "slots" in definition ? definition.slots : [];
     if (element.children?.length && !allowedSlots.includes("default"))
       throw new Error(`组件不接收 children：${id}`);
     for (const name of Object.keys(element.slots ?? {})) {
+      if (name === "default")
+        throw new Error(`默认内容必须使用 children：${id}`);
       if (!allowedSlots.includes(name))
         throw new Error(`未知 slot：${id}.${name}`);
     }

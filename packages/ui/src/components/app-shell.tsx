@@ -1,7 +1,7 @@
 import React, { type ReactNode } from "react";
 import Link from "next/link";
 
-export function Frame({
+export function AppShell({
   children,
   brand,
   links,

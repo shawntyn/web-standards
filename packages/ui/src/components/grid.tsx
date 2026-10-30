@@ -1,6 +1,6 @@
 import React from "react";
 import type { ReactNode } from "react";
-const columnClasses: Record<number, string> = {
+const columnClasses = {
   1: "min-[851px]:grid-cols-1",
   2: "min-[851px]:grid-cols-2",
   3: "min-[851px]:grid-cols-3",
@@ -11,12 +11,10 @@ export function Grid({
   columns = 3,
 }: {
   children?: ReactNode;
-  columns?: number;
+  columns?: keyof typeof columnClasses;
 }) {
   return (
-    <div
-      className={`grid grid-cols-1 gap-[18px] ${columnClasses[columns] ?? columnClasses[3]}`}
-    >
+    <div className={`grid grid-cols-1 gap-[18px] ${columnClasses[columns]}`}>
       {children}
     </div>
   );

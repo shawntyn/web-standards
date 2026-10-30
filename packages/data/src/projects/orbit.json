@@ -25,7 +25,7 @@
       },
       {
         "id": "orbit-plan",
-        "type": "ContentTable",
+        "type": "Table",
         "props": {
           "caption": "阅读计划",
           "columns": ["时间", "内容"],
@@ -37,7 +37,7 @@
       },
       {
         "id": "orbit-next",
-        "type": "LinkButton",
+        "type": "Button",
         "props": {
           "label": "返回 Atlas 项目",
           "href": "/projects/atlas"

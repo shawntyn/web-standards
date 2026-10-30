@@ -1,4 +1,5 @@
-export { ContentSchema, type ContentBlock } from "./content";
+export { componentPropsSchemas } from "./component-props-schema";
+export { ContentSchema, type ContentNode } from "./content-schema";
 export {
   ProjectSchema,
   ProjectListSchema,
